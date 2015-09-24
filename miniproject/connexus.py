@@ -1,3 +1,4 @@
+import urllib
 import webapp2
 from google.appengine.api import images
 from google.appengine.api import users
@@ -25,7 +26,7 @@ TAIL = """
 ##############
 class Picture(ndb.Model):
   stream_id = ndb.StringProperty(indexed=True)
-  blob_key = ndb.BlobKeyProperty()
+  image = ndb.BlobProperty()
   comment = ndb.StringProperty()
 
 class Stream(ndb.Model):
@@ -111,16 +112,15 @@ class View(webapp2.RequestHandler):
   def get(self):
     stream_name = self.request.get('stream')
     # TODO find stream using stream_name, and print pictures
-    PAGE = HEAD + stream_name
-    PAGE += "<form action=/view?stream=" + stream_name + """\
-      "enctype="multipart/form-data" method="post">
+    PAGE = HEAD + """
+      <b>%s</b>
+      <form action="/view?%s" enctype="multipart/form-data" method="post">
         <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
         <div><label>image:</label></div>
         <div><input type="file" name="img"/></div>
         <div><input type="submit" value="Upload"></div>
       </form>
-      """
-
+      """ % (stream_name, urllib.urlencode({'stream': stream_name}))
     PAGE += TAIL
 
     self.response.write(PAGE)
