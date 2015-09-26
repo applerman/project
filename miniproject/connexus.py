@@ -7,7 +7,7 @@ from google.appengine.ext import ndb
 HEAD = """\
 <html>
   <body>
-    <h3>Connexus</h3>
+    <h3>Connexus.us Welcome, %s! (<a href="%s">sign out</a>)</h3>
     <a href="manage">Manage</a> |
     <a href="create">Create</a> |
     <a href="view">View</a> |
@@ -16,6 +16,7 @@ HEAD = """\
     <a href="social">Social</a>
     <hr>
 """
+
 TAIL = """
   </body>
 </html>
@@ -48,14 +49,19 @@ class User(ndb.Model):
 ##############
 
 class Login(webapp2.RequestHandler):
-  def get(self):
-    # Checks for active Google account session
-    user = users.get_current_user()
 
-    if user:
-      self.redirect('/manage')
-    else:
-      self.redirect(users.create_login_url(self.request.uri))
+  def get(self):
+      user = users.get_current_user()
+      if user:
+          self.redirect('/manage')
+      else:
+          greeting = ('<a href="%s">Sign in or register</a>.' % users.create_login_url('/'))
+          self.response.out.write('<html><body> %s </body></html>' % greeting)
+
+  #   if user:
+  #     self.redirect('/manage')
+  #   else:
+  #     self.redirect(users.create_login_url(self.request.uri))
 
 class Manage(webapp2.RequestHandler):
   def post(self):
@@ -72,7 +78,9 @@ class Manage(webapp2.RequestHandler):
       self.redirect('/manage')
 
   def get(self):
-    PAGE = HEAD + "<b>Streams I own</b><br>"
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += "<b>Streams I own</b><br>"
     streams_i_own = Stream.query(Stream.creator_id ==
                                  users.get_current_user().user_id()).order(-Stream.created_date)
     for stream in streams_i_own:
@@ -88,7 +96,10 @@ class Manage(webapp2.RequestHandler):
 
 class Create(webapp2.RequestHandler):
   def get(self):
-    PAGE = HEAD + """\
+
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += """\
     <form action="/manage" method="post">
       <div>Name your stream</div>
       <div><input value="" name="name"></div>
@@ -112,7 +123,9 @@ class View(webapp2.RequestHandler):
   def get(self):
     stream_name = self.request.get('stream')
     # TODO find stream using stream_name, and print pictures
-    PAGE = HEAD + """
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += """
       <b>%s</b>
       <form action="/view?%s" enctype="multipart/form-data" method="post">
         <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
@@ -127,17 +140,41 @@ class View(webapp2.RequestHandler):
 
 class ViewAll(webapp2.RequestHandler):
   def get(self):
-    PAGE = HEAD + "<b>View All Streams</b>" + TAIL
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += "<b>View All Streams</b>" + TAIL
+    self.response.write(PAGE)
 
 class Search(webapp2.RequestHandler):
-  pass
+  def get(self):
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += "<b>Search</b>" + TAIL
+    self.response.write(PAGE)
+  # pass
 
 class Trending(webapp2.RequestHandler):
-  pass
+  def get(self):
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += "<b>Trending</b>" + TAIL
+    self.response.write(PAGE)
+  # pass
 
 class Error(webapp2.RequestHandler):
-  pass
+  def get(self):
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += "<b>Error</b>" + TAIL
+    self.response.write(PAGE)
+  # pass
 
+class Social(webapp2.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    PAGE += "<b>Social</b>" + TAIL
+    self.response.write(PAGE)
 
 
 app = webapp2.WSGIApplication([
@@ -148,5 +185,6 @@ app = webapp2.WSGIApplication([
   ('/viewall', ViewAll),
   ('/search', Search),
   ('/trending', Trending),
+  ('/social', Social),
   ('/error', Error)
 ], debug=True)
