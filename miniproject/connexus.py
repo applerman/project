@@ -92,7 +92,7 @@ class Manage(webapp2.RequestHandler):
         index = search.Index(name="myIndex")
         index.put(currentDocument)
       except search.Error:
-        print "Fail in putting in the Index" #logging.exception('Put failed')
+        pass #print "Fail in putting in the Index" #
 
       self.redirect('/manage')
 
@@ -166,7 +166,8 @@ class ViewAll(webapp2.RequestHandler):
 
 class Search(webapp2.RequestHandler):
   def post(self):
-    self.redirect('/search?show==True')
+    query_params = {'show': self.request.get('queryString')}
+    self.redirect('/search?' + urllib.urlencode(query_params))
 
   def get(self):
     user = users.get_current_user()
@@ -181,7 +182,24 @@ class Search(webapp2.RequestHandler):
       """ 
 
     if self.request.get("show"):
-      PAGE += "<b>Show Search Results</b>"
+      queryString = self.request.get('show')
+      PAGE += "<b>Show Search Results: %s</b>" % (queryString)
+
+      index = search.Index(name="myIndex")
+      try:
+          results = index.search(queryString) 
+
+          count = results.number_found
+          PAGE += "<br><b>Results Count: %d</b>" % (count)
+
+          # Iterate over the documents in the results
+          for scored_document in results:
+              # handle results
+              PAGE += "<br><b>%s</b>" % (scored_document.fields[0].value)
+
+      except search.Error:
+          pass # print "Fail in searching in the Index"
+
 
     PAGE += TAIL
     self.response.write(PAGE)
