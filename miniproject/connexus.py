@@ -3,6 +3,8 @@ import webapp2
 from google.appengine.api import images
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.api import search
+
 
 HEAD = """\
 <html>
@@ -21,6 +23,8 @@ TAIL = """
   </body>
 </html>
 """
+
+showSearchResults = False
 
 ##############
 # Data Model
@@ -75,6 +79,21 @@ class Manage(webapp2.RequestHandler):
       stream.tag = self.request.get('tag').split(',')
       stream.cover_img_url = self.request.get('cover_img_url')
       stream.put()
+
+      # Create the Document of current stream for search
+      currentDocument = search.Document(
+      fields=[
+         search.TextField(name='name', value=self.request.get('name')),
+         search.TextField(name='tag', value=self.request.get('tag')),
+         ])
+
+      # Put in Index
+      try:
+        index = search.Index(name="myIndex")
+        index.put(currentDocument)
+      except search.Error:
+        print "Fail in putting in the Index" #logging.exception('Put failed')
+
       self.redirect('/manage')
 
   def get(self):
@@ -146,12 +165,26 @@ class ViewAll(webapp2.RequestHandler):
     self.response.write(PAGE)
 
 class Search(webapp2.RequestHandler):
+  def post(self):
+    self.redirect('/search?show==True')
+
   def get(self):
     user = users.get_current_user()
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
-    PAGE += "<b>Search</b>" + TAIL
+    PAGE += "<b>Search</b>"
+
+    PAGE += """
+      <form action="/search" enctype="multipart/form-data" method="post">
+        <div><textarea name="queryString" rows="3" cols="60">Search name or tags</textarea></div>
+        <div><input type="submit" value="Search"></div>
+      </form>
+      """ 
+
+    if self.request.get("show"):
+      PAGE += "<b>Show Search Results</b>"
+
+    PAGE += TAIL
     self.response.write(PAGE)
-  # pass
 
 class Trending(webapp2.RequestHandler):
   def get(self):
@@ -181,7 +214,7 @@ app = webapp2.WSGIApplication([
   ('/', Login),
   ('/manage', Manage),
   ('/create', Create),
-  ('/view', View),
+  ('/view', ViewAll),
   ('/viewall', ViewAll),
   ('/search', Search),
   ('/trending', Trending),
