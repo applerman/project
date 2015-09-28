@@ -6,7 +6,6 @@ from google.appengine.api import search
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
-
 HEAD = """\
 <html>
   <body>
@@ -169,7 +168,7 @@ class View(webapp2.RequestHandler):
     if self.request.get('subscribe'):
       stream_name = self.request.get('stream')
       stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-      cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
+      cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)[0]
       if not cur_user:
         cur_user = User()
         cur_user.identity = users.get_current_user().user_id()
@@ -194,7 +193,7 @@ class View(webapp2.RequestHandler):
 
       pictures = Picture.query(Picture.stream_id == stream_name).order(Picture.created_date)
       for pic in pictures:
-        PAGE += ('<img src="/img?img_id=%s"></img>' % pic.key.urlsafe())
+        PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
 
       PAGE += """\
     <form action="/view?%s" enctype="multipart/form-data" method="post">
@@ -220,7 +219,7 @@ class View(webapp2.RequestHandler):
       streams = Stream.query()
       for stream in streams:
         PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
-        PAGE += ('<img src="%s"></img><br>' % stream.cover_img_url)
+        PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
 
       PAGE += TAIL
       self.response.write(PAGE)
@@ -251,12 +250,21 @@ class Search(webapp2.RequestHandler):
           results = index.search(queryString) 
 
           count = results.number_found
-          PAGE += "<br><b>Results Count: %d</b>" % (count)
+          PAGE += "<br><b>%d Results Found (Showing only top 5)</b><br>" % (count)
+          showCount = 0
 
           # Iterate over the documents in the results
           for scored_document in results:
               # handle results
-              PAGE += "<br><b>%s</b>" % (scored_document.fields[0].value)
+              streams_found = Stream.query(Stream.name == scored_document.fields[0].value).order(-Stream.created_date)
+              for stream in streams_found:
+                PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+                PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+                break;
+
+              showCount += 1
+              if showCount == 5:
+                break;
 
       except search.Error:
           pass # print "Fail in searching in the Index"
