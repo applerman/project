@@ -4,6 +4,7 @@ import webapp2
 from google.appengine.api import images
 from google.appengine.api import search
 from google.appengine.api import mail
+from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
@@ -107,6 +108,7 @@ class Manage(webapp2.RequestHandler):
         stream.put()
 
         subscribers = self.request.get('subscribers').strip().split(',')
+
         message = self.request.get('message')
 
         for subscriber in subscribers:
@@ -165,6 +167,7 @@ class Manage(webapp2.RequestHandler):
         pictures = Picture.query(Picture.stream_id == stream_name)
         for picture in pictures:
           picture.key.delete()
+
       self.redirect('/manage')
 
     elif self.request.get('unsubscribed_streams'):
@@ -265,6 +268,7 @@ class View(webapp2.RequestHandler):
           cur_user = cur_user[0]
         if stream[0].name not in cur_user.subscriptions:
           cur_user.subscriptions.append(stream[0].name)
+
         cur_user.put()
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
@@ -370,13 +374,28 @@ class Search(webapp2.RequestHandler):
     PAGE += TAIL
     self.response.write(PAGE)
 
+# For Trend
 class Trending(webapp2.RequestHandler):
   def get(self):
     user = users.get_current_user()
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
-    PAGE += "<b>Trending</b>" + TAIL
+    PAGE += "<b>Trending</b><br>"
+
+    currentTop3Streams = memcache.get('currentTop3Streams')
+    if currentTop3Streams:
+      for item in currentTop3Streams:
+
+        stream_name = item["stream_id"]
+        count = item["count"]
+
+        if Stream.query(Stream.name == stream_name).fetch(1):
+          stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
+          PAGE += "<b> %d views in past hour</b><br>" % (count)
+          PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+          PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+
+    PAGE += TAIL
     self.response.write(PAGE)
-  # pass
 
 class Error(webapp2.RequestHandler):
   def get(self):
