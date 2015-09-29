@@ -297,8 +297,22 @@ class View(webapp2.RequestHandler):
         PAGE += "<b>%s</b><br>" % stream_name
 
         pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
+        max_line = 2
+        max_line_str = self.request.get('max_line')
+        if max_line_str:
+          max_line = int(max_line_str)
+
+        count = 0
         for pic in pictures:
+          if count / 4 >= max_line:
+            PAGE += """\
+              <a href="/view?%s">More Pictures</a> 
+            """ % (urllib.urlencode({'stream': stream_name, 'max_line': max_line + 2}))
+            break
           PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
+          count += 1
+          if count % 4 == 0:
+            PAGE += "<br>"
 
         if stream.creator_id == user.user_id():
           PAGE += """\
@@ -331,9 +345,13 @@ class View(webapp2.RequestHandler):
       PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
       PAGE += "<b>View All Streams</b><br>"
       streams = Stream.query().order(Stream.created_date)
+      count = 0
       for stream in streams:
-        PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
-        PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+        PAGE += "<a href=/view?%s>%s</a>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+        PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+        count += 1
+        if count % 4 == 0:
+          PAGE += "<br>"
 
       PAGE += TAIL
       self.response.write(PAGE)
@@ -387,6 +405,20 @@ class Search(webapp2.RequestHandler):
 
 # For Trend
 class Trending(webapp2.RequestHandler):
+  def post(self):
+    if self.request.get('change_rate'):
+      change = self.request.get('change')
+      if change == 'no':
+        pass #TODO
+      elif change == '5mins':
+        pass #TODO
+      elif change == '1hour':
+        pass #TODO
+      elif change == '1day':
+        pass #TODO
+    
+    self.redirect('/trending')
+
   def get(self):
     user = users.get_current_user()
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
@@ -405,6 +437,16 @@ class Trending(webapp2.RequestHandler):
           PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
           PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
 
+    PAGE += """\
+      <form action="/trending"  method="post">
+        <div><input type=\"radio\" name=\"change\" value=\"no\"> No reports</div>
+        <div><input type=\"radio\" name=\"change\" value=\"5mins\"> Every 5 minutes</div>
+        <div><input type=\"radio\" name=\"change\" value=\"1hour\"> Every 1 hour</div>
+        <div><input type=\"radio\" name=\"change\" value=\"1day\"> Every day</div>
+        <div>Email trending report</div>
+        <div><input type="submit" value="Update rate" name="change_rate"></div>
+      </form>
+    """
     PAGE += TAIL
     self.response.write(PAGE)
 
