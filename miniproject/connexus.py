@@ -3,6 +3,7 @@ import urllib
 import webapp2
 from google.appengine.api import images
 from google.appengine.api import search
+from google.appengine.api import mail
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
@@ -73,56 +74,99 @@ class Manage(webapp2.RequestHandler):
   def post(self):
     if self.request.get('create'):
       # When Create Page submits, executes the following code.
-      stream = Stream()
-      stream.creator_id = users.get_current_user().user_id()
-      stream.name = self.request.get('name')
-      stream.num_pictures = 0
-      stream.num_views = 0
-      # TODO Handle Tag Format
-      stream.tag = self.request.get('tag').split(',')
-      stream.cover_img_url = self.request.get('cover_img_url')
-      stream.put()
+      stream_name = self.request.get('name')
+      if Stream.query(Stream.name == stream_name).fetch(1):
+        self.redirect('/error?%s' % (urllib.urlencode({'problem': 'already has stream name ' + stream_name})))
+      else:
+        stream = Stream()
+        stream.creator_id = users.get_current_user().user_id()
+        stream.name = stream_name
+        stream.num_pictures = 0
+        stream.num_views = 0
+        # TODO Handle Tag Format
+        stream.tag = self.request.get('tag').split(',')
+        stream.cover_img_url = self.request.get('cover_img_url')
+        stream.put()
 
-      # Create the Document of current stream for search
-      currentDocument = search.Document(
-      fields=[
-         search.TextField(name='name', value=self.request.get('name')),
-         search.TextField(name='tag', value=self.request.get('tag')),
-         ])
+        subscribers = self.request.get('subscribers').split(',')
+        message = self.request.get('message')
 
-      # Put in Index
-      try:
-        index = search.Index(name='myIndex')
-        index.put(currentDocument)
-      except search.Error:
-        pass #print "Fail in putting in the Index" #
+        for subscriber in subscribers:
+          mail.send_mail(sender=users.get_current_user().email(),
+                         to=subscriber,
+                         subject="Invite to the stream",
+                         body=message
+                        )
 
+        # Create the Document of current stream for search
+        currentDocument = search.Document(
+        fields=[
+          search.TextField(name='name', value=self.request.get('name')),
+          search.TextField(name='tag', value=self.request.get('tag')),
+        ])
+
+        # Put in Index
+        try:
+          index = search.Index(name='myIndex')
+          index.put(currentDocument)
+        except search.Error:
+          pass #print "Fail in putting in the Index" #
+        self.redirect('/manage')
+
+    elif self.request.get('delete_own_streams'):
+      stream_names = self.request.get_all('streams_deleted')
+      for stream_name in stream_names:
+        stream = Stream.query(Stream.name == stream_name).fetch(1)
+        if stream:
+          stream[0].key.delete()
       self.redirect('/manage')
-  #TODO
+
+    elif self.request.get('unsubscribed_streams'):
+      cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
+      if cur_user:
+        stream_names = self.request.get_all('streams_unsubscribed')
+        for stream_name in stream_names:
+          cur_user[0].subscriptions.remove(stream_name)
+        cur_user[0].put()
+      self.redirect('/manage')
 
 
   def get(self):
     # TODO make it a table?
     user = users.get_current_user()
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
-    PAGE += "<b>Streams I own</b><br>Name | Last New Picture | Number of Pictures <br>"
+    PAGE += "<b>Streams I own</b><br>Name | Last New Picture | Number of Pictures | Delete<br>"
     streams_i_own = Stream.query(Stream.creator_id ==
                                  users.get_current_user().user_id()).order(-Stream.created_date)
+    PAGE += "<form action=\"/manage\" method=\"post\">"
     for stream in streams_i_own:
-      PAGE += "<a href=/view?%s>%s</a> |" % (urllib.urlencode({'stream': stream.name}), stream.name)
-      PAGE += str(stream.last_updated_date.date()) + '|'
-      PAGE += str(stream.num_pictures) + '<br>'
+      PAGE += "<a href=/view?%s>%s</a> | " % (urllib.urlencode({'stream': stream.name}), stream.name)
+      PAGE += str(stream.last_updated_date.date()) + ' | '
+      PAGE += str(stream.num_pictures) + ' | '
+      PAGE += "<input type=\"checkbox\" name=\"streams_deleted\" value=\"%s\"><br>" % stream.name
+    PAGE += "<input type=\"submit\" value=\"Delete\" name=\"delete_own_streams\">"
+    PAGE += "</form>"
 
     PAGE += "<br>"
-    PAGE += "<b>Streams I subscribe to</b><br>Name | Last New Picture | Number of Pictures | Views <br>"
+    PAGE += "<b>Streams I subscribe to</b><br>Name | Last New Picture | Number of Pictures | Views | Delete<br>"
+    PAGE += "<form action=\"/manage\" method=\"post\">"
     cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
     if cur_user:
       for stream_name in cur_user[0].subscriptions:
-        stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-        PAGE += "<a href=/view?%s>%s</a> | " % (urllib.urlencode({'stream': stream.name}), stream.name)
-        PAGE += str(stream.last_updated_date.date()) + ' | '
-        PAGE += str(stream.num_pictures) + ' | '
-        PAGE += str(stream.num_views) + '<br>'
+        stream = Stream.query(Stream.name == stream_name).fetch(1)
+        if stream:
+          stream = stream[0]
+          PAGE += "<a href=/view?%s>%s</a> | " % (urllib.urlencode({'stream': stream.name}), stream.name)
+          PAGE += str(stream.last_updated_date.date()) + ' | '
+          PAGE += str(stream.num_pictures) + ' | '
+          PAGE += str(stream.num_views) + ' | '
+          PAGE += "<input type=\"checkbox\" name=\"streams_unsubscribed\" value=\"%s\"><br>" % stream.name
+        else:
+          cur_user[0].subscriptions.remove(stream_name)
+          # TODO delete entry, might occur bugs here
+
+    PAGE += "<input type=\"submit\" value=\"Delete\" name=\"unsubscribed_streams\">"
+    PAGE += "</form>"
 
     # TODO handle delete
     PAGE += "</body></html>"
@@ -153,17 +197,18 @@ class View(webapp2.RequestHandler):
   def post(self):
     if self.request.get('upload'):
       # TODO store image, and update ...
-      picture = Picture()
       stream_name = self.request.get('stream')
-      picture.stream_id = stream_name
-      picture.image = self.request.get('img')
-      picture.comment = self.request.get('comment')
-      picture.put()
+      if self.request.get('img'):
+        picture = Picture()
+        picture.stream_id = stream_name
+        picture.image = self.request.get('img')
+        picture.comment = self.request.get('comment')
+        picture.put()
 
-      stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-      stream.last_updated_date = datetime.datetime.now()
-      stream.num_pictures += 1
-      stream.put()
+        stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
+        stream.last_updated_date = datetime.datetime.now()
+        stream.num_pictures += 1
+        stream.put()
 
     if self.request.get('subscribe'):
       stream_name = self.request.get('stream')
@@ -173,8 +218,9 @@ class View(webapp2.RequestHandler):
         cur_user = User()
         cur_user.identity = users.get_current_user().user_id()
 
-      cur_user.subscriptions.append(stream.name)
-      cur_user.put()
+      if stream.name not in cur_user.subscriptions:
+        cur_user.subscriptions.append(stream.name)
+        cur_user.put()
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
 
@@ -191,7 +237,7 @@ class View(webapp2.RequestHandler):
 
       PAGE += "<b>%s</b><br>" % stream_name
 
-      pictures = Picture.query(Picture.stream_id == stream_name).order(Picture.created_date)
+      pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
       for pic in pictures:
         PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
 
@@ -284,7 +330,8 @@ class Error(webapp2.RequestHandler):
   def get(self):
     user = users.get_current_user()
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
-    PAGE += "<b>Error</b>" + TAIL
+    problem = self.request.get('problem')
+    PAGE += "<b>Error</b><br>" + problem + TAIL
     self.response.write(PAGE)
   # pass
 
