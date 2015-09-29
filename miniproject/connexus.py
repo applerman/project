@@ -45,37 +45,13 @@ class Stream(ndb.Model):
   num_views = ndb.IntegerProperty()
   tag = ndb.StringProperty(repeated=True)
   cover_img_url = ndb.StringProperty()
+  time_stamp = ndb.DateTimeProperty(repeated=True)
 
 class User(ndb.Model):
   identity = ndb.StringProperty(indexed=True)
+  email = ndb.StringProperty()
   subscriptions = ndb.StringProperty(repeated=True)
-
-# For Trend
-class CountInHour(ndb.Model):
-
-  stream_id = ndb.StringProperty(indexed=True)
-  count = ndb.IntegerProperty(indexed=True, default=0)
-  viewLogs = ndb.DateTimeProperty(repeated=True)
-
-  def view(self):
-    self.viewLogs.append(datetime.datetime.now())
-    self.cleanOldViews()
-    self.count = len(self.viewLogs)
-
-  def cleanOldViews(self):
-    
-    now = datetime.datetime.now()
-    deltaHour = datetime.timedelta(hours=1)
-    newFront = 0
-
-    for i in range(len(self.viewLogs)):
-      if deltaHour < (now - self.viewLogs[i]):
-        newFront = i + 1
-      else:
-        break
-
-    self.viewLogs = self.viewLogs[newFront:]
-    self.count = len(self.viewLogs)
+  trending_report = ndb.StringProperty(indexed=True)
 
 ##############
 # Handlers
@@ -87,7 +63,8 @@ class Login(webapp2.RequestHandler):
     if user:
       self.redirect('/manage')
     else:
-      greeting = ('<a href="%s">Sign in or register</a>.' % users.create_login_url('/'))
+      greeting = '<h4>Welcome to Connexus!</h4>'
+      greeting += '<a href="%s">Sign in or register</a>.' % users.create_login_url('/')
       self.response.out.write('<html><body> %s </body></html>' % greeting)
 
 class Manage(webapp2.RequestHandler):
@@ -108,7 +85,6 @@ class Manage(webapp2.RequestHandler):
         stream.put()
 
         subscribers = self.request.get('subscribers').strip().split(',')
-
         message = self.request.get('message')
 
         for subscriber in subscribers:
@@ -118,11 +94,6 @@ class Manage(webapp2.RequestHandler):
                            subject="Invite to the stream",
                            body=message
                           )
-
-        # For Trend
-        tempCountInHour = CountInHour()
-        tempCountInHour.stream_id = stream_name
-        tempCountInHour.put()
 
         # Create the Document of current stream for search
         currentDocument = search.Document(
@@ -157,11 +128,6 @@ class Manage(webapp2.RequestHandler):
           except search.Error:
               pass # print "Fail in searching in the Index"
 
-          # For Trend
-          currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)
-          if currentCountInHour:
-            currentCountInHour[0].key.delete()
-
           stream[0].key.delete()
         # Delete pictures in the stream
         pictures = Picture.query(Picture.stream_id == stream_name)
@@ -183,6 +149,9 @@ class Manage(webapp2.RequestHandler):
   def get(self):
     # TODO make it a table?
     user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Streams I own</b>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
@@ -234,6 +203,9 @@ class Manage(webapp2.RequestHandler):
 class Create(webapp2.RequestHandler):
   def get(self):
     user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
     PAGE += """\
     <form action="/manage" method="post">
@@ -274,6 +246,7 @@ class View(webapp2.RequestHandler):
         if not cur_user:
           cur_user = User()
           cur_user.identity = users.get_current_user().user_id()
+          cur_user.email = users.get_current_user().email()
         else:
           cur_user = cur_user[0]
         if stream[0].name not in cur_user.subscriptions:
@@ -285,6 +258,10 @@ class View(webapp2.RequestHandler):
 
 
   def get(self):
+    user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     stream_name = self.request.get('stream')
     if stream_name:
       stream = Stream.query(Stream.name == stream_name).fetch(1)
@@ -329,12 +306,8 @@ class View(webapp2.RequestHandler):
         </form> """ % (urllib.urlencode({'stream': stream_name}))
           PAGE += TAIL
           stream.num_views += 1
+          stream.time_stamp.append(datetime.datetime.now())
           stream.put()
-
-          # For Trend
-          currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)[0]
-          currentCountInHour.view()
-          currentCountInHour.put()
 
         self.response.write(PAGE)
       else:
@@ -363,6 +336,9 @@ class Search(webapp2.RequestHandler):
 
   def get(self):
     user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Search</b>"
 
@@ -403,39 +379,50 @@ class Search(webapp2.RequestHandler):
     PAGE += TAIL
     self.response.write(PAGE)
 
-# For Trend
 class Trending(webapp2.RequestHandler):
   def post(self):
     if self.request.get('change_rate'):
       change = self.request.get('change')
+      cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
+      if cur_user:
+        cur_user = cur_user[0]
+      else:
+        cur_user = User()
+        cur_user.identity = users.get_current_user().user_id()
+        cur_user.email = users.get_current_user().email()
+
       if change == 'no':
-        pass #TODO
+        cur_user.trending_report = 'no'
       elif change == '5mins':
-        pass #TODO
+        cur_user.trending_report = '5mins'
       elif change == '1hour':
-        pass #TODO
+        cur_user.trending_report = '1hour'
       elif change == '1day':
-        pass #TODO
-    
+        cur_user.trending_report = '1day'
+      cur_user.put()
+
     self.redirect('/trending')
 
   def get(self):
     user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Trending</b><br>"
 
-    currentTop3Streams = memcache.get('currentTop3Streams')
-    if currentTop3Streams:
-      for item in currentTop3Streams:
-
-        stream_name = item["stream_id"]
-        count = item["count"]
-
-        if Stream.query(Stream.name == stream_name).fetch(1):
-          stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-          PAGE += "<b> %d views in past hour</b><br>" % (count)
-          PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
-          PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+    result = memcache.get('result')
+    
+    for item in result:
+      stream_name = item[1]
+      stream = Stream.query(Stream.name == stream_name).fetch(1)
+      if stream:
+        stream = stream[0]
+        PAGE += "<a href=/view?%s>%s</a>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+        PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+        PAGE += "<b> %d views in past hour </b>" % item[0]
+        PAGE += "<br>"
+    PAGE += '<hr>'
 
     PAGE += """\
       <form action="/trending"  method="post">
@@ -453,6 +440,9 @@ class Trending(webapp2.RequestHandler):
 class Error(webapp2.RequestHandler):
   def get(self):
     user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
     problem = self.request.get('problem')
     PAGE += "<b>Error</b><br>" + problem + TAIL
@@ -461,6 +451,9 @@ class Error(webapp2.RequestHandler):
 class Social(webapp2.RequestHandler):
   def get(self):
     user = users.get_current_user()
+    if not user:
+      self.redirect('/')
+      return
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Social</b>" + TAIL
     self.response.write(PAGE)
@@ -475,55 +468,32 @@ class Image(webapp2.RequestHandler):
     else:
       self.response.out.write('No image')
 
-# For Trend
 class Cron(webapp2.RequestHandler):
   def get(self):
-    
-    tempsCountInHour = CountInHour.query()
-    for tempCountInHour in tempsCountInHour:
-      tempCountInHour.cleanOldViews()
-      tempCountInHour.put()
+    send = self.request.get('send')
+    if send:
+      user_to_send = User.query(User.trending_report == send).fetch()
+      message = "Hello!"
+      for each_user in user_to_send:
+        if each_user.email:
+          mail.send_mail(sender="chunheng.huang@gmail.com",
+                         to=each_user.email,
+                         subject="Digest",
+                         body=message
+                        )
 
-    currentTop3Streams = []
-
-    top3CountInHour = CountInHour.query().order(-CountInHour.count).fetch(3)
-    for i in range(3):
-      if top3CountInHour[i]:
-        topItem = {
-          "stream_id": top3CountInHour[i].stream_id,
-          "count": top3CountInHour[i].count
-        }
-        currentTop3Streams.append(topItem)
-    
-    memcache.set('currentTop3Streams', currentTop3Streams)
-
-    digestData = memcache.get('digest')
-    if digestData is None:
-      digestData = {"count": 0, "fequency": 0}
-    if digestData.get("count") is None:
-      digestData["count"] = 0
-    if digestData.get("fequency") is None:
-      digestData["fequency"] = 0
-    
-    count = digestData["count"]
-    fequency = digestData["fequency"]
-
-    if ( (count % fequency) == 0  and (fequency != 0) ):
-
-      messageBody = "Digest:"
-      for item in currentTop3Streams:
-        messageBody += "\n" + item["stream_id"] + ": " + str(item["count"])
-      messageBody += "\n"
-
-      mail.send_mail(sender="eugenegx@gmail.com",
-                     to="eugenegx@gmail.com",
-                     subject="Digest",
-                     body=messageBody
-                    )
-    
-    digestData["count"] += 1
-    memcache.set('digest', digestData)
-
+    if self.request.get('topstream'):
+      streams = Stream.query().fetch()
+      now = datetime.datetime.now()
+      deltaHour = datetime.timedelta(hours=1)
+      result = []
+      for stream in streams:
+        while len(stream.time_stamp) != 0 and now - stream.time_stamp[0] > deltaHour:
+          stream.time_stamp.pop(0)
+        stream.put()
+        result.append((len(stream.time_stamp), stream.name))
+      result.sort(reverse=True)
+      memcache.set(key="result", value=result[0:3])
 
 app = webapp2.WSGIApplication([
   ('/', Login),

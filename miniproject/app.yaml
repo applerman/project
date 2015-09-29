@@ -6,7 +6,6 @@ threadsafe: true
 handlers:
 - url: /.*
   script: connexus.app
-  login: required
 
 libraries:
 - name: webapp2
