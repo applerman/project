@@ -49,6 +49,33 @@ class User(ndb.Model):
   identity = ndb.StringProperty(indexed=True)
   subscriptions = ndb.StringProperty(repeated=True)
 
+# For Trend
+class CountInHour(ndb.Model):
+
+  stream_id = ndb.StringProperty(indexed=True)
+  count = ndb.IntegerProperty(indexed=True, default=0)
+  viewLogs = ndb.DateTimeProperty(repeated=True)
+
+  def view(self):
+    self.viewLogs.append(datetime.datetime.now())
+    self.cleanOldViews()
+    self.count = len(self.viewLogs)
+
+  def cleanOldViews(self):
+    
+    now = datetime.datetime.now()
+    deltaHour = datetime.timedelta(hours=1)
+    newFront = 0
+
+    for i in range(len(self.viewLogs)):
+      if deltaHour < (now - self.viewLogs[i]):
+        newFront = i + 1
+      else:
+        break
+
+    self.viewLogs = self.viewLogs[newFront:]
+    self.count = len(self.viewLogs)
+
 ##############
 # Handlers
 ##############
@@ -92,6 +119,11 @@ class Manage(webapp2.RequestHandler):
                            body=message
                           )
 
+        # For Trend
+        tempCountInHour = CountInHour()
+        tempCountInHour.stream_id = stream_name
+        tempCountInHour.put()
+
         # Create the Document of current stream for search
         currentDocument = search.Document(
         fields=[
@@ -124,6 +156,11 @@ class Manage(webapp2.RequestHandler):
                   index.delete(temp_doc_id)
           except search.Error:
               pass # print "Fail in searching in the Index"
+
+          # For Trend
+          currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)
+          if currentCountInHour:
+            currentCountInHour[0].key.delete()
 
           stream[0].key.delete()
 
@@ -239,6 +276,11 @@ class View(webapp2.RequestHandler):
       stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
       stream.num_views += 1
       stream.put()
+
+      # For Trend
+      currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)[0]
+      currentCountInHour.view()
+      currentCountInHour.put()
 
       user = users.get_current_user()
       PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
@@ -359,6 +401,55 @@ class Image(webapp2.RequestHandler):
     else:
       self.response.out.write('No image')
 
+# For Trend
+class Cron(webapp2.RequestHandler):
+  def get(self):
+    
+    tempsCountInHour = CountInHour.query()
+    for tempCountInHour in tempsCountInHour:
+      tempCountInHour.cleanOldViews()
+      tempCountInHour.put()
+
+    currentTop3Streams = []
+
+    top3CountInHour = CountInHour.query().order(-CountInHour.count).fetch(3)
+    for i in range(3):
+      if top3CountInHour[i]:
+        topItem = {
+          "stream_id": top3CountInHour[i].stream_id,
+          "count": top3CountInHour[i].count
+        }
+        currentTop3Streams.append(topItem)
+    
+    memcache.set('currentTop3Streams', currentTop3Streams)
+
+    digestData = memcache.get('digest')
+    if digestData is None:
+      digestData = {"count": 0, "fequency": 0}
+    if digestData.get("count") is None:
+      digestData["count"] = 0
+    if digestData.get("fequency") is None:
+      digestData["fequency"] = 0
+    
+    count = digestData["count"]
+    fequency = digestData["fequency"]
+
+    if ( (count % fequency) == 0  and (fequency != 0) ):
+
+      messageBody = "Digest:"
+      for item in currentTop3Streams:
+        messageBody += "\n" + item["stream_id"] + ": " + str(item["count"])
+      messageBody += "\n"
+
+      mail.send_mail(sender="eugenegx@gmail.com",
+                     to="eugenegx@gmail.com",
+                     subject="Digest",
+                     body=messageBody
+                    )
+    
+    digestData["count"] += 1
+    memcache.set('digest', digestData)
+
 
 app = webapp2.WSGIApplication([
   ('/', Login),
@@ -369,5 +460,6 @@ app = webapp2.WSGIApplication([
   ('/trending', Trending),
   ('/social', Social),
   ('/error', Error),
-  ('/img', Image)
+  ('/img', Image),
+  ('/cron', Cron)
 ], debug=True)
