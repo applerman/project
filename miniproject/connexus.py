@@ -184,40 +184,50 @@ class Manage(webapp2.RequestHandler):
     # TODO make it a table?
     user = users.get_current_user()
     PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
-    PAGE += "<b>Streams I own</b><br>Name | Last New Picture | Number of Pictures | Delete<br>"
+    PAGE += "<b>Streams I own</b>"
+    PAGE += "<form action=\"/manage\" method=\"post\">"
+    PAGE += "<table>"
+    PAGE += "<tr><th>Name</th><th>Last New Picture</th><th>Number of Pictures</th><th>Delete</th><tr>"
     streams_i_own = Stream.query(Stream.creator_id ==
                                  users.get_current_user().user_id()).order(-Stream.created_date)
-    PAGE += "<form action=\"/manage\" method=\"post\">"
     for stream in streams_i_own:
-      PAGE += "<a href=/view?%s>%s</a> | " % (urllib.urlencode({'stream': stream.name}), stream.name)
-      PAGE += str(stream.last_updated_date.date()) + ' | '
-      PAGE += str(stream.num_pictures) + ' | '
-      PAGE += "<input type=\"checkbox\" name=\"streams_deleted\" value=\"%s\"><br>" % stream.name
+      PAGE += "<tr>"
+      PAGE += "<td><a href=/view?%s>%s</a></td>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+      PAGE += "<td>" + str(stream.last_updated_date.date()) + "</td>"
+      PAGE += "<td>" + str(stream.num_pictures) + "</td>"
+      PAGE += "<td><input type=\"checkbox\" name=\"streams_deleted\" value=\"%s\"></td>" % stream.name
+      PAGE += "</tr>"
+    PAGE += "</table>"
     PAGE += "<input type=\"submit\" value=\"Delete\" name=\"delete_own_streams\">"
     PAGE += "</form>"
 
     PAGE += "<br>"
-    PAGE += "<b>Streams I subscribe to</b><br>Name | Last New Picture | Number of Pictures | Views | Delete<br>"
+    PAGE += "<b>Streams I subscribe to</b>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
+    PAGE += "<table>"
+    PAGE += "<tr><th>Name</th><th>Last New Picture</th><th>Number of Pictures</th><th>Views</th><th>Unsubscribe</th>"
     cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
     if cur_user:
       for stream_name in cur_user[0].subscriptions:
         stream = Stream.query(Stream.name == stream_name).fetch(1)
         if stream:
           stream = stream[0]
-          PAGE += "<a href=/view?%s>%s</a> | " % (urllib.urlencode({'stream': stream.name}), stream.name)
-          PAGE += str(stream.last_updated_date.date()) + ' | '
-          PAGE += str(stream.num_pictures) + ' | '
-          PAGE += str(stream.num_views) + ' | '
-          PAGE += "<input type=\"checkbox\" name=\"streams_unsubscribed\" value=\"%s\"><br>" % stream.name
+          PAGE += "<tr>"
+          PAGE += "<td><a href=/view?%s>%s</a></td>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+          PAGE += "<td>" + str(stream.last_updated_date.date()) + '</td>'
+          PAGE += "<td>" + str(stream.num_pictures) + '</td>'
+          PAGE += "<td>" + str(stream.num_views) + '</td>'
+          PAGE += "<td><input type=\"checkbox\" name=\"streams_unsubscribed\" value=\"%s\"></td>" % stream.name
+          PAGE += "</tr>"
         else:
           pass
           #cur_user[0].subscriptions.remove(stream_name)
           # TODO delete entry, might occur bugs here
 
-    PAGE += "<input type=\"submit\" value=\"Delete\" name=\"unsubscribed_streams\">"
+    PAGE += "</table>"
+    PAGE += "<input type=\"submit\" value=\"Unsubscribe\" name=\"unsubscribed_streams\">"
     PAGE += "</form>"
-    PAGE += "</body></html>"
+    PAGE += TAIL
     self.response.write(PAGE)
 
 
@@ -236,7 +246,7 @@ class Create(webapp2.RequestHandler):
       <div><textarea name="tag" rows="3" cols="60"></textarea></div>
       <div>URL to cover image (Can be empty)</div>
       <div><input value="" name="cover_img_url"></div>
-      <div><input type="submit" name="create"></div>
+      <div><input type="submit" value="Create Stream" name="create"></div>
     </form>
     """ + TAIL
     self.response.write(PAGE)
@@ -248,14 +258,14 @@ class View(webapp2.RequestHandler):
       # Store image
       stream = Stream.query(Stream.name == stream_name).fetch(1)
       if stream and self.request.get('img'):
+        stream[0].last_updated_date = datetime.datetime.now()
+        stream[0].num_pictures += 1
+        stream[0].put()
         picture = Picture()
         picture.stream_id = stream_name
         picture.image = self.request.get('img')
         picture.comment = self.request.get('comment')
         picture.put()
-        stream[0].last_updated_date = datetime.datetime.now()
-        stream[0].num_pictures += 1
-        stream[0].put()
 
     elif self.request.get('subscribe'):
       stream = Stream.query(Stream.name == stream_name).fetch(1)
@@ -280,14 +290,6 @@ class View(webapp2.RequestHandler):
       stream = Stream.query(Stream.name == stream_name).fetch(1)
       if stream:
         stream = stream[0]
-        stream.num_views += 1
-        stream.put()
-
-        # For Trend
-        currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)[0]
-        currentCountInHour.view()
-        currentCountInHour.put()
-
 
         user = users.get_current_user()
         PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
@@ -298,19 +300,28 @@ class View(webapp2.RequestHandler):
         for pic in pictures:
           PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
 
-        PAGE += """\
-      <form action="/view?%s" enctype="multipart/form-data" method="post">
-        <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
-        <div><label>image:</label></div>
-        <div><input type="file" name="img"/></div>
-        <div><input type="submit" name="upload"></div>
-      </form> """ % (urllib.urlencode({'stream': stream_name}))
+        if stream.creator_id == user.user_id():
+          PAGE += """\
+        <form action="/view?%s" enctype="multipart/form-data" method="post">
+          <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
+          <div><label>image:</label></div>
+          <div><input type="file" name="img"/></div>
+          <div><input type="submit" name="upload"></div>
+        </form> """ % (urllib.urlencode({'stream': stream_name}))
+        else:
+          PAGE += """\
+        <form action="/view?%s" method="post">
+          <input type="submit" value="Subscribe" name="subscribe">
+        </form> """ % (urllib.urlencode({'stream': stream_name}))
+          PAGE += TAIL
+          stream.num_views += 1
+          stream.put()
 
-        PAGE += """\
-      <form action="/view?%s" method="post">
-        <input type="submit" value="Subscribe" name="subscribe">
-      </form> """ % (urllib.urlencode({'stream': stream_name}))
-        PAGE += TAIL
+          # For Trend
+          currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)[0]
+          currentCountInHour.view()
+          currentCountInHour.put()
+
         self.response.write(PAGE)
       else:
         self.redirect('/error?%s' % (urllib.urlencode({'problem': 'no such stream name ' + stream_name})))
