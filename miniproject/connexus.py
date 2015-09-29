@@ -81,19 +81,17 @@ class CountInHour(ndb.Model):
 ##############
 
 class Login(webapp2.RequestHandler):
-
   def get(self):
-      user = users.get_current_user()
-      if user:
-          self.redirect('/manage')
-      else:
-          greeting = ('<a href="%s">Sign in or register</a>.' % users.create_login_url('/'))
-          self.response.out.write('<html><body> %s </body></html>' % greeting)
+    user = users.get_current_user()
+    if user:
+      self.redirect('/manage')
+    else:
+      greeting = ('<a href="%s">Sign in or register</a>.' % users.create_login_url('/'))
+      self.response.out.write('<html><body> %s </body></html>' % greeting)
 
 class Manage(webapp2.RequestHandler):
   def post(self):
     if self.request.get('create'):
-      # When Create Page submits, executes the following code.
       stream_name = self.request.get('name')
       if Stream.query(Stream.name == stream_name).fetch(1):
         self.redirect('/error?%s' % (urllib.urlencode({'problem': 'already has stream name ' + stream_name})))
@@ -103,12 +101,12 @@ class Manage(webapp2.RequestHandler):
         stream.name = stream_name
         stream.num_pictures = 0
         stream.num_views = 0
-        # TODO Handle Tag Format
-        stream.tag = self.request.get('tag').split(',')
+        # TODO Need to handle tag format
+        stream.tag = self.request.get('tag').strip().split(',')
         stream.cover_img_url = self.request.get('cover_img_url')
         stream.put()
 
-        subscribers = self.request.get('subscribers').split(',')
+        subscribers = self.request.get('subscribers').strip().split(',')
         message = self.request.get('message')
 
         for subscriber in subscribers:
@@ -163,7 +161,10 @@ class Manage(webapp2.RequestHandler):
             currentCountInHour[0].key.delete()
 
           stream[0].key.delete()
-
+        # Delete pictures in the stream
+        pictures = Picture.query(Picture.stream_id == stream_name)
+        for picture in pictures:
+          picture.key.delete()
       self.redirect('/manage')
 
     elif self.request.get('unsubscribed_streams'):
@@ -207,13 +208,12 @@ class Manage(webapp2.RequestHandler):
           PAGE += str(stream.num_views) + ' | '
           PAGE += "<input type=\"checkbox\" name=\"streams_unsubscribed\" value=\"%s\"><br>" % stream.name
         else:
-          cur_user[0].subscriptions.remove(stream_name)
+          pass
+          #cur_user[0].subscriptions.remove(stream_name)
           # TODO delete entry, might occur bugs here
 
     PAGE += "<input type=\"submit\" value=\"Delete\" name=\"unsubscribed_streams\">"
     PAGE += "</form>"
-
-    # TODO handle delete
     PAGE += "</body></html>"
     self.response.write(PAGE)
 
@@ -240,31 +240,31 @@ class Create(webapp2.RequestHandler):
 
 class View(webapp2.RequestHandler):
   def post(self):
+    stream_name = self.request.get('stream')
     if self.request.get('upload'):
-      # TODO store image, and update ...
-      stream_name = self.request.get('stream')
-      if self.request.get('img'):
+      # Store image
+      stream = Stream.query(Stream.name == stream_name).fetch(1)
+      if stream and self.request.get('img'):
         picture = Picture()
         picture.stream_id = stream_name
         picture.image = self.request.get('img')
         picture.comment = self.request.get('comment')
         picture.put()
+        stream[0].last_updated_date = datetime.datetime.now()
+        stream[0].num_pictures += 1
+        stream[0].put()
 
-        stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-        stream.last_updated_date = datetime.datetime.now()
-        stream.num_pictures += 1
-        stream.put()
-
-    if self.request.get('subscribe'):
-      stream_name = self.request.get('stream')
-      stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-      cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)[0]
-      if not cur_user:
-        cur_user = User()
-        cur_user.identity = users.get_current_user().user_id()
-
-      if stream.name not in cur_user.subscriptions:
-        cur_user.subscriptions.append(stream.name)
+    elif self.request.get('subscribe'):
+      stream = Stream.query(Stream.name == stream_name).fetch(1)
+      if stream:
+        cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
+        if not cur_user:
+          cur_user = User()
+          cur_user.identity = users.get_current_user().user_id()
+        else:
+          cur_user = cur_user[0]
+        if stream[0].name not in cur_user.subscriptions:
+          cur_user.subscriptions.append(stream[0].name)
         cur_user.put()
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
@@ -273,46 +273,49 @@ class View(webapp2.RequestHandler):
   def get(self):
     stream_name = self.request.get('stream')
     if stream_name:
-      stream = Stream.query(Stream.name == stream_name).fetch(1)[0]
-      stream.num_views += 1
-      stream.put()
+      stream = Stream.query(Stream.name == stream_name).fetch(1)
+      if stream:
+        stream = stream[0]
+        stream.num_views += 1
+        stream.put()
 
-      # For Trend
-      currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)[0]
-      currentCountInHour.view()
-      currentCountInHour.put()
+        # For Trend
+        currentCountInHour = CountInHour.query(CountInHour.stream_id == stream_name).fetch(1)[0]
+        currentCountInHour.view()
+        currentCountInHour.put()
 
-      user = users.get_current_user()
-      PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
 
-      PAGE += "<b>%s</b><br>" % stream_name
+        user = users.get_current_user()
+        PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
 
-      pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
-      for pic in pictures:
-        PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
+        PAGE += "<b>%s</b><br>" % stream_name
 
-      PAGE += """\
-    <form action="/view?%s" enctype="multipart/form-data" method="post">
-      <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
-      <div><label>image:</label></div>
-      <div><input type="file" name="img"/></div>
-      <div><input type="submit" name="upload"></div>
-    </form> """ % (urllib.urlencode({'stream': stream_name}))
+        pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
+        for pic in pictures:
+          PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
 
-      PAGE += """\
-    <form action="/view?%s" enctype="multipart/form-data" method="post">
-      Subscribe
-      <div><input type="submit" name="subscribe"></div>
-    </form> """ % (urllib.urlencode({'stream': stream_name}))
-      PAGE += TAIL
+        PAGE += """\
+      <form action="/view?%s" enctype="multipart/form-data" method="post">
+        <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
+        <div><label>image:</label></div>
+        <div><input type="file" name="img"/></div>
+        <div><input type="submit" name="upload"></div>
+      </form> """ % (urllib.urlencode({'stream': stream_name}))
 
-      self.response.write(PAGE)
+        PAGE += """\
+      <form action="/view?%s" method="post">
+        <input type="submit" value="Subscribe" name="subscribe">
+      </form> """ % (urllib.urlencode({'stream': stream_name}))
+        PAGE += TAIL
+        self.response.write(PAGE)
+      else:
+        self.redirect('/error?%s' % (urllib.urlencode({'problem': 'no such stream name ' + stream_name})))
 
     else:
       user = users.get_current_user()
       PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
       PAGE += "<b>View All Streams</b><br>"
-      streams = Stream.query()
+      streams = Stream.query().order(Stream.created_date)
       for stream in streams:
         PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
         PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
@@ -382,7 +385,6 @@ class Error(webapp2.RequestHandler):
     problem = self.request.get('problem')
     PAGE += "<b>Error</b><br>" + problem + TAIL
     self.response.write(PAGE)
-  # pass
 
 class Social(webapp2.RequestHandler):
   def get(self):
