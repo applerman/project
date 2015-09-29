@@ -412,28 +412,40 @@ class Trending(webapp2.RequestHandler):
     PAGE += "<b>Trending</b><br>"
 
     result = memcache.get('result')
-    
-    for item in result:
-      stream_name = item[1]
-      stream = Stream.query(Stream.name == stream_name).fetch(1)
-      if stream:
-        stream = stream[0]
-        PAGE += "<a href=/view?%s>%s</a>" % (urllib.urlencode({'stream': stream.name}), stream.name)
-        PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
-        PAGE += "<b> %d views in past hour </b>" % item[0]
-        PAGE += "<br>"
-    PAGE += '<hr>'
+   
+    if result: 
+      for item in result:
+        stream_name = item[1]
+        stream = Stream.query(Stream.name == stream_name).fetch(1)
+        if stream:
+          stream = stream[0]
+          PAGE += "<a href=/view?%s>%s</a>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+          PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+          PAGE += "<b> %d views in past hour </b>" % item[0]
+          PAGE += "<br>"
+      PAGE += '<hr>'
+
+
+    checked = ('checked', '', '', '')
+    cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
+    if cur_user:
+      if cur_user[0].trending_report == '5mins':
+        checked = ('', 'checked', '', '')
+      elif cur_user[0].trending_report == '1hour':
+        checked = ('', '', 'checked', '')
+      elif cur_user[0].trending_report == '1day':
+        checked = ('', '', '', 'checked')
 
     PAGE += """\
       <form action="/trending"  method="post">
-        <div><input type=\"radio\" name=\"change\" value=\"no\"> No reports</div>
-        <div><input type=\"radio\" name=\"change\" value=\"5mins\"> Every 5 minutes</div>
-        <div><input type=\"radio\" name=\"change\" value=\"1hour\"> Every 1 hour</div>
-        <div><input type=\"radio\" name=\"change\" value=\"1day\"> Every day</div>
+        <div><input type=\"radio\" name=\"change\" value=\"no\" %s> No reports</div>
+        <div><input type=\"radio\" name=\"change\" value=\"5mins\" %s> Every 5 minutes</div>
+        <div><input type=\"radio\" name=\"change\" value=\"1hour\" %s> Every 1 hour</div>
+        <div><input type=\"radio\" name=\"change\" value=\"1day\" %s> Every day</div>
         <div>Email trending report</div>
         <div><input type="submit" value="Update rate" name="change_rate"></div>
       </form>
-    """
+    """ % checked
     PAGE += TAIL
     self.response.write(PAGE)
 
@@ -473,7 +485,7 @@ class Cron(webapp2.RequestHandler):
     send = self.request.get('send')
     if send:
       user_to_send = User.query(User.trending_report == send).fetch()
-      message = "Hello!"
+      message = str(memcache.get('result'))
       for each_user in user_to_send:
         if each_user.email:
           mail.send_mail(sender="chunheng.huang@gmail.com",
@@ -481,6 +493,17 @@ class Cron(webapp2.RequestHandler):
                          subject="Digest",
                          body=message
                         )
+          if each_user.email == "chunheng.huang@gmail.com":
+            mail.send_mail(sender="chunheng.huang@gmail.com",
+                           to="nima.dini@utexas.edu",
+                           subject="Digest",
+                           body=message
+                          )
+            mail.send_mail(sender="chunheng.huang@gmail.com",
+                           to="kevzsolo@gmail.com",
+                           subject="Digest",
+                           body=message
+                          )
 
     if self.request.get('topstream'):
       streams = Stream.query().fetch()
