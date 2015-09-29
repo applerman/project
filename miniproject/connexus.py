@@ -26,8 +26,6 @@ TAIL = """\
 </html>
 """
 
-showSearchResults = False
-
 ##############
 # Data Model
 ##############
@@ -65,11 +63,6 @@ class Login(webapp2.RequestHandler):
           greeting = ('<a href="%s">Sign in or register</a>.' % users.create_login_url('/'))
           self.response.out.write('<html><body> %s </body></html>' % greeting)
 
-  #   if user:
-  #     self.redirect('/manage')
-  #   else:
-  #     self.redirect(users.create_login_url(self.request.uri))
-
 class Manage(webapp2.RequestHandler):
   def post(self):
     if self.request.get('create'):
@@ -92,11 +85,12 @@ class Manage(webapp2.RequestHandler):
         message = self.request.get('message')
 
         for subscriber in subscribers:
-          mail.send_mail(sender=users.get_current_user().email(),
-                         to=subscriber,
-                         subject="Invite to the stream",
-                         body=message
-                        )
+          if subscriber:
+            mail.send_mail(sender=users.get_current_user().email(),
+                           to=subscriber,
+                           subject="Invite to the stream",
+                           body=message
+                          )
 
         # Create the Document of current stream for search
         currentDocument = search.Document(
@@ -118,7 +112,21 @@ class Manage(webapp2.RequestHandler):
       for stream_name in stream_names:
         stream = Stream.query(Stream.name == stream_name).fetch(1)
         if stream:
+          index = search.Index(name="myIndex")
+          try:
+              results = index.search(stream_name) 
+
+              # Iterate over the documents in the results
+              for scored_document in results:
+                # handle results
+                if stream_name == scored_document.fields[0].value:
+                  temp_doc_id = scored_document.doc_id
+                  index.delete(temp_doc_id)
+          except search.Error:
+              pass # print "Fail in searching in the Index"
+
           stream[0].key.delete()
+
       self.redirect('/manage')
 
     elif self.request.get('unsubscribed_streams'):
@@ -302,11 +310,10 @@ class Search(webapp2.RequestHandler):
           # Iterate over the documents in the results
           for scored_document in results:
               # handle results
-              streams_found = Stream.query(Stream.name == scored_document.fields[0].value).order(-Stream.created_date)
-              for stream in streams_found:
+              if Stream.query(Stream.name == scored_document.fields[0].value).fetch(1):
+                stream = Stream.query(Stream.name == scored_document.fields[0].value).fetch(1)[0]
                 PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
                 PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a><br>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
-                break;
 
               showCount += 1
               if showCount == 5:
