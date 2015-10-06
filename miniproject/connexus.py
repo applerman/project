@@ -10,6 +10,10 @@ from google.appengine.ext import ndb
 
 HEAD = """\
 <html>
+  <head>
+    <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
+    <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
+  </head>
   <body>
     <h3>Connex.us</h3>
     Welcome, %s! (<a href="%s">sign out</a>)<br>
