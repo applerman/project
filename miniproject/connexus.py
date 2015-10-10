@@ -354,7 +354,7 @@ class Search(webapp2.RequestHandler):
     autolist = memcache.get('autolist')
     if not autolist:
       autolist = set()
-    LIST = '"' + '","'.join(autolist) + '"'
+    LIST = '"' + '","'.join(sorted(list(autolist))) + '"'
 
     HEAD_CONTENT = '''
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -553,6 +553,15 @@ class Cron(webapp2.RequestHandler):
         result.append((len(stream.time_stamp), stream.name))
       result.sort(reverse=True)
       memcache.set(key="result", value=result[0:3])
+
+    if self.request.get('rebuild'):
+      autolist = set()
+      streams = Stream.query()
+      for stream in streams:
+        autolist.add(stream.name)
+        for tag in stream.tag:
+          autolist.add(tag.strip(' #'))
+      memcache.set(key="autolist", value=autolist)
 
 app = webapp2.WSGIApplication([
   ('/', Login),
