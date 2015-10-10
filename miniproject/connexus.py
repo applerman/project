@@ -11,8 +11,7 @@ from google.appengine.ext import ndb
 HEAD = """\
 <html>
   <head>
-    <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
-    <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
+    %s
   </head>
   <body>
     <h3>Connex.us</h3>
@@ -78,6 +77,7 @@ class Manage(webapp2.RequestHandler):
       if Stream.query(Stream.name == stream_name).fetch(1):
         self.redirect('/error?%s' % (urllib.urlencode({'problem': 'already has stream name ' + stream_name})))
       else:
+
         stream = Stream()
         stream.creator_id = users.get_current_user().user_id()
         stream.name = stream_name
@@ -87,6 +87,14 @@ class Manage(webapp2.RequestHandler):
         stream.tag = self.request.get('tag').strip().split(',')
         stream.cover_img_url = self.request.get('cover_img_url')
         stream.put()
+
+        autolist = memcache.get('autolist')
+        if not autolist:
+          autolist = set()
+        autolist.add(stream_name)
+        for tag in self.request.get('tag').strip().split(','):
+          autolist.add(tag.strip(' #'))
+        memcache.set(key="autolist", value=autolist)
 
         subscribers = self.request.get('subscribers').strip().split(',')
         message = self.request.get('message')
@@ -156,7 +164,8 @@ class Manage(webapp2.RequestHandler):
     if not user:
       self.redirect('/')
       return
-    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    HEAD_CONTENT = ''
+    PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Streams I own</b>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
     PAGE += "<table>"
@@ -210,7 +219,8 @@ class Create(webapp2.RequestHandler):
     if not user:
       self.redirect('/')
       return
-    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    HEAD_CONTENT = ''
+    PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += """\
     <form action="/manage" method="post">
       <div>Name your stream</div>
@@ -272,7 +282,11 @@ class View(webapp2.RequestHandler):
         stream = stream[0]
 
         user = users.get_current_user()
-        PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+        HEAD_CONTENT = '''
+    <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
+    <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
+        '''
+        PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
 
         PAGE += "<b>%s</b><br>" % stream_name
 
@@ -312,7 +326,8 @@ class View(webapp2.RequestHandler):
 
     else:
       user = users.get_current_user()
-      PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+      HEAD_CONTENT = ''
+      PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
       PAGE += "<b>View All Streams</b><br>"
       streams = Stream.query().order(Stream.created_date)
       count = 0
@@ -336,15 +351,36 @@ class Search(webapp2.RequestHandler):
     if not user:
       self.redirect('/')
       return
-    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    autolist = memcache.get('autolist')
+    if not autolist:
+      autolist = set()
+    LIST = '"' + '","'.join(autolist) + '"'
+
+    HEAD_CONTENT = '''
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script>
+  $(function() {
+    var availableTags = [
+      %s
+    ];
+    $( "#tags" ).autocomplete({
+      source: availableTags
+    });
+  });
+  </script>
+    ''' % LIST
+    PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Search</b>"
 
     PAGE += """
       <form action="/search" enctype="multipart/form-data" method="post">
-        <div><textarea name="queryString" rows="3" cols="60">Search name or tags</textarea></div>
+        <div><input id="tags" name="queryString"></div>
         <div><input type="submit" value="Search"></div>
       </form>
       """ 
+    '''<div><textarea name="queryString" rows="3" cols="60">Search name or tags</textarea></div>'''
 
     if self.request.get("show"):
       queryString = self.request.get('show')
@@ -405,7 +441,8 @@ class Trending(webapp2.RequestHandler):
     if not user:
       self.redirect('/')
       return
-    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    HEAD_CONTENT = ''
+    PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Trending</b><br>"
 
     result = memcache.get('result')
@@ -452,7 +489,8 @@ class Error(webapp2.RequestHandler):
     if not user:
       self.redirect('/')
       return
-    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    HEAD_CONTENT = ''
+    PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     problem = self.request.get('problem')
     PAGE += "<b>Error</b><br>" + problem + TAIL
     self.response.write(PAGE)
@@ -463,7 +501,8 @@ class Social(webapp2.RequestHandler):
     if not user:
       self.redirect('/')
       return
-    PAGE = HEAD % (user.nickname(), users.create_logout_url('/'))
+    HEAD_CONTENT = ''
+    PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Social</b>" + TAIL
     self.response.write(PAGE)
 
