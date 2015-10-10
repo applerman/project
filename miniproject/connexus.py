@@ -87,15 +87,6 @@ class Manage(webapp2.RequestHandler):
         stream.tag = self.request.get('tag').strip().split(',')
         stream.cover_img_url = self.request.get('cover_img_url')
         stream.put()
-
-        autolist = memcache.get('autolist')
-        if not autolist:
-          autolist = set()
-        autolist.add(stream_name)
-        for tag in self.request.get('tag').strip().split(','):
-          autolist.add(tag.strip(' #'))
-        memcache.set(key="autolist", value=autolist)
-
         subscribers = self.request.get('subscribers').strip().split(',')
         message = self.request.get('message')
 
@@ -375,6 +366,11 @@ class Search(webapp2.RequestHandler):
   </script>
     ''' % LIST
     PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
+    PAGE += '''
+        <form action="/cron?rebuild=true" method="post">
+          <input type="submit" value="Rebuild completion index">
+        </form>
+            '''
     PAGE += "<b>Search</b>"
 
     PAGE += """
@@ -520,6 +516,20 @@ class Image(webapp2.RequestHandler):
       self.response.out.write('No image')
 
 class Cron(webapp2.RequestHandler):
+  def make_auto_list(self):
+    autolist = set()
+    streams = Stream.query()
+    for stream in streams:
+      autolist.add(stream.name.strip().lower())
+      for tag in stream.tag:
+        autolist.add(tag.strip(' #').lower())
+    memcache.set(key="autolist", value=autolist)
+
+  def post(self):
+    if self.request.get('rebuild'):
+      self.make_auto_list()
+      self.redirect('/search')
+
   def get(self):
     send = self.request.get('send')
     if send:
@@ -558,13 +568,7 @@ class Cron(webapp2.RequestHandler):
       memcache.set(key="result", value=result[0:3])
 
     if self.request.get('rebuild'):
-      autolist = set()
-      streams = Stream.query()
-      for stream in streams:
-        autolist.add(stream.name)
-        for tag in stream.tag:
-          autolist.add(tag.strip(' #'))
-      memcache.set(key="autolist", value=autolist)
+      self.make_auto_list()
 
 app = webapp2.WSGIApplication([
   ('/', Login),
