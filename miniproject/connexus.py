@@ -16,7 +16,6 @@ HEAD = """\
     <link href="css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <h3>Connex.us</h3>
     Welcome, %s! (<a href="%s">sign out</a>)<br><br>
@@ -160,9 +159,9 @@ class Manage(webapp2.RequestHandler):
       return
     HEAD_CONTENT = ''
     PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
-    PAGE += "<b>Streams I own</b>"
+    PAGE += "<h4><b>Streams I own</b></h4>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
-    PAGE += "<table class=\"table table-hover\">"
+    PAGE += "<table class=\"table table-striped\">"
     PAGE += "<tr><th>Name</th><th>Last New Picture</th><th>Number of Pictures</th><th>Delete</th><tr>"
     streams_i_own = Stream.query(Stream.creator_id ==
                                  users.get_current_user().user_id()).order(-Stream.created_date)
@@ -178,9 +177,9 @@ class Manage(webapp2.RequestHandler):
     PAGE += "</form>"
 
     PAGE += "<br>"
-    PAGE += "<b>Streams I subscribe to</b>"
+    PAGE += "<h4><b>Streams I subscribe to</b></h4>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
-    PAGE += "<table class=\"table table-hover\">"
+    PAGE += "<table class=\"table table-striped\">"
     PAGE += "<tr><th>Name</th><th>Last New Picture</th><th>Number of Pictures</th><th>Views</th><th>Unsubscribe</th>"
     cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
     if cur_user:
@@ -282,7 +281,7 @@ class View(webapp2.RequestHandler):
         '''
         PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
 
-        PAGE += "<b>%s</b><br>" % stream_name
+        PAGE += "<h4><b>%s</b><h4>" % stream_name
 
         pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
         max_line = 2
@@ -294,7 +293,7 @@ class View(webapp2.RequestHandler):
         for pic in pictures:
           if count / 4 >= max_line:
             PAGE += """\
-              <a href="/view?%s">More Pictures</a> 
+              <a href="/view?%s" class="btn btn-default">More Pictures</a> 
             """ % (urllib.urlencode({'stream': stream_name, 'max_line': max_line + 2}))
             break
           PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
@@ -302,7 +301,9 @@ class View(webapp2.RequestHandler):
           if count % 4 == 0:
             PAGE += "<br>"
 
+        PAGE += '<br><br>(Only stream owner can upload images.)'
         if stream.creator_id == user.user_id():
+          PAGE += "<br><br>Please upload your files here."
           PAGE += '''<form action="/view?%s" class="dropzone"></form>''' % (urllib.urlencode({'stream': stream_name}))
         else:
           PAGE += """\
@@ -325,12 +326,17 @@ class View(webapp2.RequestHandler):
       PAGE += "<b>View All Streams</b><br>"
       streams = Stream.query().order(Stream.created_date)
       count = 0
+      PAGE += "<table class=\"table table-bordered\"><tr>"
       for stream in streams:
+        PAGE += "<td>"
         PAGE += "<a href=/view?%s>%s</a>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+        PAGE += "<br>"
         PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+        PAGE += "</td>"
         count += 1
         if count % 4 == 0:
-          PAGE += "<br>"
+          PAGE += "</tr><tr>"
+      PAGE += "</tr></table>"
 
       PAGE += TAIL
       self.response.write(PAGE)
@@ -455,9 +461,9 @@ class Trending(webapp2.RequestHandler):
         stream = Stream.query(Stream.name == stream_name).fetch(1)
         if stream:
           stream = stream[0]
-          PAGE += "<a href=/view?%s>%s</a>" % (urllib.urlencode({'stream': stream.name}), stream.name)
-          PAGE += ('<a href=/view?%s><img src="%s", width="64"></img><a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
-          PAGE += "<b> %d views in past hour </b>" % item[0]
+          PAGE += "<a href=/view?%s>%s</a><br>" % (urllib.urlencode({'stream': stream.name}), stream.name)
+          PAGE += ('<a href=/view?%s><img src="%s", width="64"></img></a>' % (urllib.urlencode({'stream': stream.name}), stream.cover_img_url))
+          PAGE += " <b> %d views in past hour </b>" % item[0]
           PAGE += "<br>"
       PAGE += '<hr>'
 
@@ -514,7 +520,7 @@ class Image(webapp2.RequestHandler):
     picture = picture_key.get()
     if picture.image:
       self.response.headers['Content-Type'] = 'image/gif'
-      self.response.out.write(images.resize(picture.image, height=64, allow_stretch=False))
+      self.response.out.write(images.resize(picture.image, height=96, allow_stretch=False))
     else:
       self.response.out.write('No image')
 
@@ -545,17 +551,6 @@ class Cron(webapp2.RequestHandler):
                          subject="Digest",
                          body=message
                         )
-          if each_user.email == "chunheng.huang@gmail.com":
-            mail.send_mail(sender="chunheng.huang@gmail.com",
-                           to="nima.dini@utexas.edu",
-                           subject="Digest",
-                           body=message
-                          )
-            mail.send_mail(sender="chunheng.huang@gmail.com",
-                           to="kevzsolo@gmail.com",
-                           subject="Digest",
-                           body=message
-                          )
 
     if self.request.get('topstream'):
       streams = Stream.query().fetch()
