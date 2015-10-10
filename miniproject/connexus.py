@@ -230,20 +230,7 @@ class Create(webapp2.RequestHandler):
 class View(webapp2.RequestHandler):
   def post(self):
     stream_name = self.request.get('stream')
-    if self.request.get('upload'):
-      # Store image
-      stream = Stream.query(Stream.name == stream_name).fetch(1)
-      if stream and self.request.get('img'):
-        stream[0].last_updated_date = datetime.datetime.now()
-        stream[0].num_pictures += 1
-        stream[0].put()
-        picture = Picture()
-        picture.stream_id = stream_name
-        picture.image = self.request.get('img')
-        picture.comment = self.request.get('comment')
-        picture.put()
-
-    elif self.request.get('subscribe'):
+    if self.request.get('subscribe'):
       stream = Stream.query(Stream.name == stream_name).fetch(1)
       if stream:
         cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
@@ -257,6 +244,18 @@ class View(webapp2.RequestHandler):
           cur_user.subscriptions.append(stream[0].name)
 
         cur_user.put()
+    else:
+      # Store image
+      stream = Stream.query(Stream.name == stream_name).fetch(1)
+      if stream and self.request.get('file'):
+        stream[0].last_updated_date = datetime.datetime.now()
+        stream[0].num_pictures += 1
+        stream[0].put()
+        picture = Picture()
+        picture.stream_id = stream_name
+        picture.image = self.request.get('file')
+        #picture.comment = self.request.get('comment')
+        picture.put()
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
 
@@ -296,13 +295,7 @@ class View(webapp2.RequestHandler):
             PAGE += "<br>"
 
         if stream.creator_id == user.user_id():
-          PAGE += """\
-        <form action="/view?%s" enctype="multipart/form-data" method="post">
-          <div><textarea name="comment" rows="3" cols="60">comment</textarea></div>
-          <div><label>image:</label></div>
-          <div><input type="file" name="img"/></div>
-          <div><input type="submit" name="upload"></div>
-        </form> """ % (urllib.urlencode({'stream': stream_name}))
+          PAGE += '''<form action="/view?%s" class="dropzone"></form>''' % (urllib.urlencode({'stream': stream_name}))
         else:
           PAGE += """\
         <form action="/view?%s" method="post">
