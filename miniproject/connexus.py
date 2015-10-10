@@ -12,16 +12,20 @@ HEAD = """\
 <html>
   <head>
     %s
+    <meta charset="utf-8">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
     <h3>Connex.us</h3>
-    Welcome, %s! (<a href="%s">sign out</a>)<br>
-    <a href="manage">Manage</a> |
-    <a href="create">Create</a> |
-    <a href="view">View</a> |
-    <a href="search">Search</a> |
-    <a href="trending">Trending</a> |
-    <a href="social">Social</a>
+    Welcome, %s! (<a href="%s">sign out</a>)<br><br>
+    <a class="btn btn-default" href="manage">Manage</a>
+    <a class="btn btn-default" href="create">Create</a>
+    <a class="btn btn-default" href="view">View</a>
+    <a class="btn btn-default" href="search">Search</a>
+    <a class="btn btn-default" href="trending">Trending</a>
+    <a class="btn btn-default" href="social">Social</a>
     <hr>
 """
 
@@ -150,7 +154,6 @@ class Manage(webapp2.RequestHandler):
 
 
   def get(self):
-    # TODO make it a table?
     user = users.get_current_user()
     if not user:
       self.redirect('/')
@@ -159,7 +162,7 @@ class Manage(webapp2.RequestHandler):
     PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += "<b>Streams I own</b>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
-    PAGE += "<table>"
+    PAGE += "<table class=\"table table-hover\">"
     PAGE += "<tr><th>Name</th><th>Last New Picture</th><th>Number of Pictures</th><th>Delete</th><tr>"
     streams_i_own = Stream.query(Stream.creator_id ==
                                  users.get_current_user().user_id()).order(-Stream.created_date)
@@ -171,13 +174,13 @@ class Manage(webapp2.RequestHandler):
       PAGE += "<td><input type=\"checkbox\" name=\"streams_deleted\" value=\"%s\"></td>" % stream.name
       PAGE += "</tr>"
     PAGE += "</table>"
-    PAGE += "<input type=\"submit\" value=\"Delete\" name=\"delete_own_streams\">"
+    PAGE += "<input type=\"submit\" value=\"Delete\" class=\"btn btn-primary\" name=\"delete_own_streams\">"
     PAGE += "</form>"
 
     PAGE += "<br>"
     PAGE += "<b>Streams I subscribe to</b>"
     PAGE += "<form action=\"/manage\" method=\"post\">"
-    PAGE += "<table>"
+    PAGE += "<table class=\"table table-hover\">"
     PAGE += "<tr><th>Name</th><th>Last New Picture</th><th>Number of Pictures</th><th>Views</th><th>Unsubscribe</th>"
     cur_user = User.query(User.identity == users.get_current_user().user_id()).fetch(1)
     if cur_user:
@@ -198,7 +201,7 @@ class Manage(webapp2.RequestHandler):
           # TODO delete entry, might occur bugs here
 
     PAGE += "</table>"
-    PAGE += "<input type=\"submit\" value=\"Unsubscribe\" name=\"unsubscribed_streams\">"
+    PAGE += "<input type=\"submit\" value=\"Unsubscribe\" class=\"btn btn-primary\" name=\"unsubscribed_streams\">"
     PAGE += "</form>"
     PAGE += TAIL
     self.response.write(PAGE)
@@ -222,8 +225,8 @@ class Create(webapp2.RequestHandler):
       <div>Tag your stream</div>
       <div><textarea name="tag" rows="3" cols="60"></textarea></div>
       <div>URL to cover image (Can be empty)</div>
-      <div><input value="" name="cover_img_url"></div>
-      <div><input type="submit" value="Create Stream" name="create"></div>
+      <div><input value="" name="cover_img_url"></div><br>
+      <div><input type="submit" value="Create Stream" class="btn btn-primary" name="create"></div>
     </form>
     """ + TAIL
     self.response.write(PAGE)
@@ -274,8 +277,8 @@ class View(webapp2.RequestHandler):
 
         user = users.get_current_user()
         HEAD_CONTENT = '''
-    <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
-    <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
+    <script src="js/dropzone.js"></script>
+    <link rel="stylesheet" href="css/dropzone.css">
         '''
         PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
 
@@ -304,7 +307,7 @@ class View(webapp2.RequestHandler):
         else:
           PAGE += """\
         <form action="/view?%s" method="post">
-          <input type="submit" value="Subscribe" name="subscribe">
+          <input type="submit" class="btn btn-primary" value="Subscribe" name="subscribe">
         </form> """ % (urllib.urlencode({'stream': stream_name}))
           PAGE += TAIL
           stream.num_views += 1
@@ -368,15 +371,15 @@ class Search(webapp2.RequestHandler):
     PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
     PAGE += '''
         <form action="/cron?rebuild=true" method="post">
-          <input type="submit" value="Rebuild completion index">
+          <input type="submit" class="btn btn-primary" value="Rebuild completion index">
         </form>
             '''
     PAGE += "<b>Search</b>"
 
     PAGE += """
       <form action="/search" enctype="multipart/form-data" method="post">
-        <div><input id="tags" name="queryString"></div>
-        <div><input type="submit" value="Search"></div>
+        <div><input id="tags" name="queryString"></div><br>
+        <div><input type="submit" class="btn btn-primary" value="Search"></div>
       </form>
       """ 
     '''<div><textarea name="queryString" rows="3" cols="60">Search name or tags</textarea></div>'''
@@ -476,7 +479,7 @@ class Trending(webapp2.RequestHandler):
         <div><input type=\"radio\" name=\"change\" value=\"1hour\" %s> Every 1 hour</div>
         <div><input type=\"radio\" name=\"change\" value=\"1day\" %s> Every day</div>
         <div>Email trending report</div>
-        <div><input type="submit" value="Update rate" name="change_rate"></div>
+        <div><input type="submit" value="Update rate" class="btn btn-primary" name="change_rate"></div>
       </form>
     """ % checked
     PAGE += TAIL
