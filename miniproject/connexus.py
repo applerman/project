@@ -366,7 +366,10 @@ class Search(webapp2.RequestHandler):
       %s
     ];
     $( "#tags" ).autocomplete({
-      source: availableTags
+      source: function(request, response) {
+        var results = $.ui.autocomplete.filter(availableTags, request.term);
+        response(results.slice(0, 20));
+      }
     });
   });
   </script>
