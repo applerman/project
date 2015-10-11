@@ -1,12 +1,19 @@
+import os
 import datetime 
 import urllib
 import webapp2
+import jinja2
 from google.appengine.api import images
 from google.appengine.api import search
 from google.appengine.api import mail
 from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import ndb
+
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
 
 HEAD = """\
 <html>
@@ -40,7 +47,8 @@ class Picture(ndb.Model):
   stream_id = ndb.StringProperty(indexed=True)
   created_date = ndb.DateTimeProperty(auto_now_add=True)
   image = ndb.BlobProperty()
-  comment = ndb.StringProperty()
+  c = ndb.StringProperty()
+  geo = ndb.GeoPtProperty()
 
 class Stream(ndb.Model):
   creator_id = ndb.StringProperty(indexed=True)
@@ -273,11 +281,62 @@ class View(webapp2.RequestHandler):
       stream = Stream.query(Stream.name == stream_name).fetch(1)
       if stream:
         stream = stream[0]
-
         user = users.get_current_user()
+        
+        pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
+        for pic in pictures:
+          image_id = pic.key.urlsafe()
+
         HEAD_CONTENT = '''
-    <script src="js/dropzone.js"></script>
     <link rel="stylesheet" href="css/dropzone.css">
+    <script src="js/dropzone.js"></script>
+    <script src="http://maps.google.com/maps/api/js?sensor=true" type="text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js" type="text/javascript"></script>
+    <script src="js/jquery.ui.map.full.min.js" type="text/javascript"></script>
+    <script src="js/markerclusterer.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(function() {
+                /*
+                $("#slider-range").slider({
+                  range: true,
+                  min: 0,
+                  max: 500,
+                  values: [ 75, 300 ],
+                  slide: function( event, ui ) {
+                    $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+                  }
+                });
+
+                $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
+                  " - $" + $( "#slider-range" ).slider( "values", 1 ) );
+                
+                // Also works with: var yourStartLatLng = '59.3426606750, 18.0736160278';
+                //var yourStartLatLng = new google.maps.LatLng(59.3426606750, 18.0736160278);
+                //$('#map_canvas').gmap({'center': yourStartLatLng});
+                */
+                
+                $('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
+                  var bounds = map.getBounds();
+                  var southWest = bounds.getSouthWest();
+                  var northEast = bounds.getNorthEast();
+                  var lngSpan = northEast.lng() - southWest.lng();
+                  var latSpan = northEast.lat() - southWest.lat();
+                  for ( var i = 0; i < 1000; i++ ) {
+                    var lat = southWest.lat() + latSpan * Math.random();
+                    var lng = southWest.lng() + lngSpan * Math.random();
+                    $('#map_canvas').gmap('addMarker', { 
+                      'position': new google.maps.LatLng(lat, lng) 
+                    }).click(function() {
+                      $('#map_canvas').gmap('openInfoWindow', { content : '<img style="width:100px" src="img?img_id={{image_id}}">' }, this);
+                    });
+                  }
+                  $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+                  // To call methods in MarkerClusterer simply call 
+                  // $('#map_canvas').gmap('get', 'MarkerClusterer').callingSomeMethod();
+                });
+                
+        });
+    </script>
         '''
         PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
 
@@ -310,12 +369,30 @@ class View(webapp2.RequestHandler):
         <form action="/view?%s" method="post">
           <input type="submit" class="btn btn-primary" value="Subscribe" name="subscribe">
         </form> """ % (urllib.urlencode({'stream': stream_name}))
-          PAGE += TAIL
-          stream.num_views += 1
-          stream.time_stamp.append(datetime.datetime.now())
-          stream.put()
 
-        self.response.write(PAGE)
+        # Add Geo Map View
+        PAGE += '<br>Geo View'
+        PAGE += """\
+        <br><div id="map_canvas" style="width:1000px;height:500px"></div>
+        <p>
+          <label for="amount">Price range:</label>
+          <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+        </p>
+        <div id="slider-range"></div>
+        """
+
+        PAGE += TAIL
+        stream.num_views += 1
+        stream.time_stamp.append(datetime.datetime.now())
+        stream.put()
+
+        
+        
+        template_values = {}
+        template = JINJA_ENVIRONMENT.get_template('html/view.html')
+        self.response.write(template.render(template_values))
+
+        # self.response.write(PAGE)
       else:
         self.redirect('/error?%s' % (urllib.urlencode({'problem': 'no such stream name ' + stream_name})))
 

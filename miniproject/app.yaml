@@ -18,3 +18,5 @@ libraries:
   version: latest
 - name: PIL
   version: latest
+- name: jinja2
+  version: latest
