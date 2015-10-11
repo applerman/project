@@ -388,7 +388,12 @@ class View(webapp2.RequestHandler):
 
         
         
-        template_values = {}
+        template_values = {
+          'user': user,
+          'users': users,
+          'stream_name': stream_name
+
+        }
         template = JINJA_ENVIRONMENT.get_template('html/view.html')
         self.response.write(template.render(template_values))
 
