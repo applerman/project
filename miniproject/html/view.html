@@ -25,15 +25,17 @@
 	                  var northEast = bounds.getNorthEast();
 	                  var lngSpan = northEast.lng() - southWest.lng();
 	                  var latSpan = northEast.lat() - southWest.lat();
-	                  for ( var i = 0; i < 1000; i++ ) {
-	                    var lat = southWest.lat() + latSpan * Math.random();
-	                    var lng = southWest.lng() + lngSpan * Math.random();
-	                    $('#map_canvas').gmap('addMarker', { 
+
+	                  {% for pic in pictures %}
+                  		var lat = southWest.lat() + latSpan * Math.random();
+                    	var lng = southWest.lng() + lngSpan * Math.random();
+                    	$('#map_canvas').gmap('addMarker', { 
 	                      'position': new google.maps.LatLng(lat, lng) 
 	                    }).click(function() {
-	                      $('#map_canvas').gmap('openInfoWindow', { content : '<img style="width:100px" src="img?img_id={{image_id}}">' }, this);
+	                      $('#map_canvas').gmap('openInfoWindow', { content : '<img style="width:100px" src="img?img_id={{pic.key.urlsafe()}}">' }, this);
 	                    });
-	                  }
+					  {% endfor %}
+
 	                  $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
 	                  // To call methods in MarkerClusterer simply call 
 	                  // $('#map_canvas').gmap('get', 'MarkerClusterer').callingSomeMethod();
