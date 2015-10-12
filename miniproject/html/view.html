@@ -71,11 +71,22 @@
 
 		<h4><b>{{stream_name}}</b><h4>
 
+		{% for pic in pictures %}
+			<a href=/img?img_id={{pic.key.urlsafe()}}><img src="/img?img_id={{pic.key.urlsafe()}}"></img></a>
+	    {% endfor %}
+	    <br><br>(Only stream owner can upload images.)
 
-		
+	    {% if stream.creator_id == user.user_id() %}
+          <br><br>Please upload your files here.
+          <form action="/view?{{urllib.urlencode({'stream': stream_name})}}" class="dropzone"></form>
+        {% endif %}
 
+        <form action="/view?{{urllib.urlencode({'stream': stream_name})}}" method="post">
+          <input type="submit" class="btn btn-primary" value="Subscribe" name="subscribe">
+        </form>
 
- 		<br>Geo View
+ 		<br>
+ 		Geo View
  		<br><div id="map_canvas" style="width:1000px;height:500px"></div>
  		<br>
 
@@ -87,7 +98,4 @@
 		<div id="slider-range"></div>
 
  	</body>
-
-
-
  </html>

@@ -389,9 +389,12 @@ class View(webapp2.RequestHandler):
         
         
         template_values = {
+          'stream': stream,
           'user': user,
           'users': users,
-          'stream_name': stream_name
+          'stream_name': stream_name,
+          'pictures': pictures,
+          'urllib': urllib
 
         }
         template = JINJA_ENVIRONMENT.get_template('html/view.html')
