@@ -274,8 +274,6 @@ class View(webapp2.RequestHandler):
         lon = random.uniform(-179, 179)
         picture.geo = ndb.GeoPt(lat,lon)
         picture.put()
-        
-        
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
 
@@ -298,56 +296,11 @@ class View(webapp2.RequestHandler):
 
         HEAD_CONTENT = '''
     <link rel="stylesheet" href="css/dropzone.css">
+    <link rel="stylesheet" href="css/lightbox.css">
     <script src="js/dropzone.js"></script>
-    <script src="http://maps.google.com/maps/api/js?sensor=true" type="text/javascript"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js" type="text/javascript"></script>
-    <script src="js/jquery.ui.map.full.min.js" type="text/javascript"></script>
-    <script src="js/markerclusterer.min.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        $(function() {
-                /*
-                $("#slider-range").slider({
-                  range: true,
-                  min: 0,
-                  max: 500,
-                  values: [ 75, 300 ],
-                  slide: function( event, ui ) {
-                    $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
-                  }
-                });
-
-                $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
-                  " - $" + $( "#slider-range" ).slider( "values", 1 ) );
-                
-                // Also works with: var yourStartLatLng = '59.3426606750, 18.0736160278';
-                //var yourStartLatLng = new google.maps.LatLng(59.3426606750, 18.0736160278);
-                //$('#map_canvas').gmap({'center': yourStartLatLng});
-                */
-                
-                $('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
-                  var bounds = map.getBounds();
-                  var southWest = bounds.getSouthWest();
-                  var northEast = bounds.getNorthEast();
-                  var lngSpan = northEast.lng() - southWest.lng();
-                  var latSpan = northEast.lat() - southWest.lat();
-                  for ( var i = 0; i < 1000; i++ ) {
-                    var lat = southWest.lat() + latSpan * Math.random();
-                    var lng = southWest.lng() + lngSpan * Math.random();
-                    $('#map_canvas').gmap('addMarker', { 
-                      'position': new google.maps.LatLng(lat, lng) 
-                    }).click(function() {
-                      $('#map_canvas').gmap('openInfoWindow', { content : '<img style="width:100px" src="img?img_id={{image_id}}">' }, this);
-                    });
-                  }
-                  $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
-                  // To call methods in MarkerClusterer simply call 
-                  // $('#map_canvas').gmap('get', 'MarkerClusterer').callingSomeMethod();
-                });
-                
-        });
-    </script>
         '''
         PAGE = HEAD % (HEAD_CONTENT, user.nickname(), users.create_logout_url('/'))
+        PAGE += '<script src="js/lightbox-plus-jquery.min.js"></script>'
 
         PAGE += "<h4><b>%s</b><h4>" % stream_name
 
@@ -357,6 +310,8 @@ class View(webapp2.RequestHandler):
         if max_line_str:
           max_line = int(max_line_str)
 
+        PAGE+='<a class="btn btn-primary" href="/view?%s">Geo View</a>' % (urllib.urlencode({'stream': stream_name, 'geo': 'true'}))
+        PAGE+='<br><br>'
         count = 0
         for pic in pictures:
           if count / 4 >= max_line:
@@ -364,7 +319,7 @@ class View(webapp2.RequestHandler):
               <a href="/view?%s" class="btn btn-default">More Pictures</a> 
             """ % (urllib.urlencode({'stream': stream_name, 'max_line': max_line + 2}))
             break
-          PAGE += ('<a href=/img?img_id=%s><img src="/img?img_id=%s"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
+          PAGE += ('<a href=/img?img_id=%s data-lightbox="true"><img src="/img?img_id=%s&resize=true"></img></a>' % (pic.key.urlsafe(),pic.key.urlsafe()))
           count += 1
           if count % 4 == 0:
             PAGE += "<br>"
@@ -379,37 +334,24 @@ class View(webapp2.RequestHandler):
           <input type="submit" class="btn btn-primary" value="Subscribe" name="subscribe">
         </form> """ % (urllib.urlencode({'stream': stream_name}))
 
-        # Add Geo Map View
-        PAGE += '<br>Geo View'
-        PAGE += """\
-        <br><div id="map_canvas" style="width:1000px;height:500px"></div>
-        <p>
-          <label for="amount">Price range:</label>
-          <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
-        </p>
-        <div id="slider-range"></div>
-        """
-
         PAGE += TAIL
         stream.num_views += 1
         stream.time_stamp.append(datetime.datetime.now())
         stream.put()
 
-        
-        
-        template_values = {
-          'stream': stream,
-          'user': user,
-          'users': users,
-          'stream_name': stream_name,
-          'pictures': pictures,
-          'urllib': urllib
-
-        }
-        template = JINJA_ENVIRONMENT.get_template('html/view.html')
-        self.response.write(template.render(template_values))
-
-        # self.response.write(PAGE)
+        if self.request.get('geo'):
+          template_values = {
+            'stream': stream,
+            'user': user,
+            'users': users,
+            'stream_name': stream_name,
+            'pictures': pictures,
+            'urllib': urllib
+          }
+          template = JINJA_ENVIRONMENT.get_template('html/view.html')
+          self.response.write(template.render(template_values))
+        else:
+          self.response.write(PAGE)
       else:
         self.redirect('/error?%s' % (urllib.urlencode({'problem': 'no such stream name ' + stream_name})))
 
@@ -614,7 +556,10 @@ class Image(webapp2.RequestHandler):
     picture = picture_key.get()
     if picture.image:
       self.response.headers['Content-Type'] = 'image/gif'
-      self.response.out.write(images.resize(picture.image, height=96, allow_stretch=False))
+      if self.request.get('resize'):
+        self.response.out.write(images.resize(picture.image, height=96, allow_stretch=False))
+      else:
+        self.response.out.write(picture.image)
     else:
       self.response.out.write('No image')
 
