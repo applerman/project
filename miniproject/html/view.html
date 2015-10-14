@@ -19,7 +19,7 @@
 	    <script type="text/javascript">
 	        $(function() {
 	                
-	                $('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).one('init', function(evt, map) { 
+	                $('#map_canvas').gmap({'zoom': 1, 'disableDefaultUI':true}).one('init', function(evt, map) { 
 	                  var bounds = map.getBounds();
 	                  var southWest = bounds.getSouthWest();
 	                  var northEast = bounds.getNorthEast();
@@ -27,8 +27,10 @@
 	                  var latSpan = northEast.lat() - southWest.lat();
 
 	                  {% for pic in pictures %}
-                  		var lat = southWest.lat() + latSpan * Math.random();
-                    	var lng = southWest.lng() + lngSpan * Math.random();
+	                  	var lat = new Number({{pic.geo.lat}});
+	                  	var lng = new Number({{pic.geo.lon}});
+                  		// var lat = southWest.lat() + latSpan * Math.random();
+                    	// var lng = southWest.lng() + lngSpan * Math.random();
                     	$('#map_canvas').gmap('addMarker', { 
 	                      'position': new google.maps.LatLng(lat, lng) 
 	                    }).click(function() {
@@ -62,7 +64,7 @@
 
 				      	$('#map_canvas').gmap('clear', 'markers');
 				      	$('#map_canvas').gmap('destroy');
-						$('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).one('init', function(evt, map) {
+						$('#map_canvas').gmap({'zoom': 1, 'disableDefaultUI':true}).one('init', function(evt, map) {
 
 						  $('#map_canvas').gmap('clear', 'markers');
 
@@ -76,13 +78,15 @@
 
 		                  {% for pic in pictures %}
 
-		                    var currDate = new Date({{pic.date.year}},{{pic.date.month}},{{pic.date.day}});
-		                    // console.log(currDate.toDateString());
+		                    var currDate = new Date({{pic.date.year}},{{pic.date.month}}-1,{{pic.date.day}});
+		                    console.log(currDate.toDateString());
 
 		                    if(leftDate<=currDate && currDate<=rightDate){
-
-								var lat = southWest.lat() + latSpan * Math.random();
-		                    	var lng = southWest.lng() + lngSpan * Math.random();
+		                    	var lat = new Number({{pic.geo.lat}});
+	                  			var lng = new Number({{pic.geo.lon}});
+								// var lat = southWest.lat() + latSpan * Math.random();
+		      //               	var lng = southWest.lng() + lngSpan * Math.random();
+		                    	console.log(lat, lng);
 		                    	$('#map_canvas').gmap('addMarker', { 
 			                      'position': new google.maps.LatLng(lat, lng) 
 			                    }).click(function() {

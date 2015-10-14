@@ -3,6 +3,7 @@ import datetime
 import urllib
 import webapp2
 import jinja2
+import random
 from google.appengine.api import images
 from google.appengine.api import search
 from google.appengine.api import mail
@@ -46,7 +47,7 @@ TAIL = """\
 class Picture(ndb.Model):  
   stream_id = ndb.StringProperty(indexed=True)
   created_date = ndb.DateTimeProperty(auto_now_add=True)
-  date = ndb.DateProperty(auto_now_add=True)
+  date = ndb.DateProperty()
   image = ndb.BlobProperty()
   c = ndb.StringProperty()
   geo = ndb.GeoPtProperty()
@@ -266,8 +267,15 @@ class View(webapp2.RequestHandler):
         picture = Picture()
         picture.stream_id = stream_name
         picture.image = self.request.get('file')
-        #picture.comment = self.request.get('comment')
+        randomMonth = random.randint(1, 12)
+        randomDay = random.randint(1, 28)
+        picture.date = datetime.date(year=2015, month=randomMonth, day=randomDay)
+        lat = random.uniform(-60, 60)
+        lon = random.uniform(-179, 179)
+        picture.geo = ndb.GeoPt(lat,lon)
         picture.put()
+        
+        
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
 
