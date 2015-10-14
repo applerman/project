@@ -19,7 +19,7 @@
 	    <script type="text/javascript">
 	        $(function() {
 	                
-	                $('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
+	                $('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).one('init', function(evt, map) { 
 	                  var bounds = map.getBounds();
 	                  var southWest = bounds.getSouthWest();
 	                  var northEast = bounds.getNorthEast();
@@ -32,27 +32,83 @@
                     	$('#map_canvas').gmap('addMarker', { 
 	                      'position': new google.maps.LatLng(lat, lng) 
 	                    }).click(function() {
-	                      $('#map_canvas').gmap('openInfoWindow', { content : '<img style="width:100px" src="img?img_id={{pic.key.urlsafe()}}">' }, this);
+	                      $('#map_canvas').gmap('openInfoWindow', { content : '<img height="100" width="100" src="img?img_id={{pic.key.urlsafe()}}">' }, this);
 	                    });
 					  {% endfor %}
 
 	                  $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+
 	                  // To call methods in MarkerClusterer simply call 
 	                  // $('#map_canvas').gmap('get', 'MarkerClusterer').callingSomeMethod();
 	                });
 	                
-
 					$( "#slider-range" ).slider({
 				      range: true,
 				      min: 0,
-				      max: 500,
-				      values: [ 75, 300 ],
+				      max: 730,
+				      values: [ 0, 730 ],
 				      slide: function( event, ui ) {
-				        $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+
+				      	var thisday = new Date();
+				      	var left = ui.values[ 0 ];
+				      	var right = 730 - ui.values[ 1 ];
+
+				      	var leftDate = new Date(new Date().setDate(thisday.getDate()-365+left));
+				      	var rightDate = new Date(new Date().setDate(thisday.getDate()+365-right));
+
+				      	$( "#amount" ).val( leftDate.toDateString() + " - " + rightDate.toDateString() );
+
+				      	// console.log("min: " + leftDate.toDateString() + " max: " + rightDate.toDateString());
+
+				      	$('#map_canvas').gmap('clear', 'markers');
+				      	$('#map_canvas').gmap('destroy');
+						$('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).one('init', function(evt, map) {
+
+						  $('#map_canvas').gmap('clear', 'markers');
+
+		                  var bounds = map.getBounds();
+		                  var southWest = bounds.getSouthWest();
+		                  var northEast = bounds.getNorthEast();
+		                  var lngSpan = northEast.lng() - southWest.lng();
+		                  var latSpan = northEast.lat() - southWest.lat();
+
+		                  $('#map_canvas').gmap('clear', 'markers');
+
+		                  {% for pic in pictures %}
+
+		                    var currDate = new Date({{pic.date.year}},{{pic.date.month}},{{pic.date.day}});
+		                    // console.log(currDate.toDateString());
+
+		                    if(leftDate<=currDate && currDate<=rightDate){
+
+								var lat = southWest.lat() + latSpan * Math.random();
+		                    	var lng = southWest.lng() + lngSpan * Math.random();
+		                    	$('#map_canvas').gmap('addMarker', { 
+			                      'position': new google.maps.LatLng(lat, lng) 
+			                    }).click(function() {
+			                      $('#map_canvas').gmap('openInfoWindow', { content : '<img height="100" width="100" src="img?img_id={{pic.key.urlsafe()}}">' }, this);
+			                    });
+		                    }
+
+						  {% endfor %}
+
+		                  $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+
+		                  // To call methods in MarkerClusterer simply call 
+		                  // $('#map_canvas').gmap('get', 'MarkerClusterer').callingSomeMethod();
+		                });
+
+
+
+
+
 				      }
 				    });
-				    $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
-				      " - $" + $( "#slider-range" ).slider( "values", 1 ) );
+
+					var today = new Date();
+					var oneYearAgo = new Date(new Date().setDate(today.getDate()-365));
+					var oneYearFromNow = new Date(new Date().setDate(today.getDate()+365));
+				    $( "#amount" ).val( oneYearAgo.toDateString() + " - " + oneYearFromNow.toDateString());
                 
 	        });
 	    </script>
@@ -93,8 +149,8 @@
  		<br>
 
  		<p>
-		  <label for="amount">Price range:</label>
-		  <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+		  <label >Date range:</label>
+		  <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;" size="100">
 		</p>
 		 
 		<div id="slider-range"></div>

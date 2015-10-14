@@ -46,6 +46,7 @@ TAIL = """\
 class Picture(ndb.Model):  
   stream_id = ndb.StringProperty(indexed=True)
   created_date = ndb.DateTimeProperty(auto_now_add=True)
+  date = ndb.DateProperty(auto_now_add=True)
   image = ndb.BlobProperty()
   c = ndb.StringProperty()
   geo = ndb.GeoPtProperty()
