@@ -2,6 +2,7 @@ package com.aptdemo.yzhao.androiddemo;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -59,6 +60,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         // set preview size and make any resize, rotate or
         // reformatting changes here
+        mCamera.setDisplayOrientation(90);
 
         // start preview with new settings
         try {

@@ -36,7 +36,8 @@
         </activity>
         <activity
             android:name=".CameraCapture"
-            android:label="@string/title_activity_camera_capture" >
+            android:label="@string/title_activity_camera_capture"
+            android:screenOrientation="portrait" >
         </activity>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
     </application>
