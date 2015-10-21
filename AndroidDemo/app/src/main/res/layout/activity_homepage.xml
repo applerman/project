@@ -38,8 +38,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/revoke_access_button_name"
                 android:enabled="false" />
-
-        </LinearLayout>
+            </LinearLayout>
 
 
         <TextView

@@ -8,12 +8,13 @@
     <string name="uploadImage">Upload Image</string>
     <string name="upload_hint">Add a caption for photo</string>
     <string name="choose_from_library">Choose From Library</string>
-    <string name="title_activity_display_images">DisplayImages</string>
+    <string name="use_camera">Use camera</string>
+
     <string name="imagePage">View All Images</string>
     <string name="uploadImageActivity"> Upload a new image</string>
+    <string name="title_activity_display_images">DisplayImages</string>
     <string name="title_activity_image_upload">ImageUpload</string>
-
-
+    <string name="title_activity_camera_capture">CameraCapture</string>
 
     <string name="circles_title">Visible circles:</string>
     <string name="sign_out_button_name">Sign out</string>
