@@ -27,6 +27,14 @@
             android:text="@string/choose_from_library"
             />
 
+        <Button
+            android:id="@+id/use_camera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/use_camera"
+            android:onClick="useCameraCapture"
+            />
+
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

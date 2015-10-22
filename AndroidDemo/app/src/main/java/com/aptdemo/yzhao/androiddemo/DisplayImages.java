@@ -39,7 +39,8 @@ public class DisplayImages extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_images);
 
-        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
+//        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
+        final String request_url = "http://phase3back.appspot.com/viewAllPhotos";
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
