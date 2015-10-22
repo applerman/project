@@ -5,11 +5,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-//import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
@@ -34,6 +34,7 @@ import java.io.ByteArrayOutputStream;
 
 public class ImageUpload extends ActionBarActivity {
     private static final int PICK_IMAGE = 1;
+    private static final int CAMERA_IMAGE = 2;
     Context context = this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +127,44 @@ public class ImageUpload extends ActionBarActivity {
                     }
             );
         }
+        else if(requestCode == CAMERA_IMAGE){
+
+            Button uploadButton = (Button) findViewById(R.id.upload_to_server);
+            uploadButton.setClickable(true);
+
+            Matrix matrix = new Matrix();
+            matrix.postRotate(90);
+
+            String imageFilePath = data.getStringExtra("latestImageFileName");
+            Bitmap bitmapImage = BitmapFactory.decodeFile(imageFilePath);
+            final Bitmap rotatedBitmapImage = Bitmap.createBitmap(bitmapImage, 0, 0, bitmapImage.getWidth(), bitmapImage.getHeight(), matrix, true);
+
+            ImageView imgView = (ImageView) findViewById(R.id.thumbnail);
+            imgView.setImageBitmap(rotatedBitmapImage);
+
+            Toast.makeText(context, "Check the preview and press Upload below!", Toast.LENGTH_SHORT).show();
+
+            uploadButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                    // Get photo caption
+
+                    EditText text = (EditText) findViewById(R.id.upload_message);
+                    String photoCaption = text.getText().toString();
+
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    rotatedBitmapImage.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+                    byte[] b = baos.toByteArray();
+                    byte[] encodedImage = Base64.encode(b, Base64.DEFAULT);
+                    String encodedImageStr = encodedImage.toString();
+
+                    getUploadURL(b, photoCaption);
+                    }
+                }
+            );
+
+        }
     }
 
     private void getUploadURL(final byte[] encodedImage, final String photoCaption){
@@ -184,6 +223,6 @@ public class ImageUpload extends ActionBarActivity {
 
     public void useCameraCapture(View view){
         Intent intent= new Intent(this, CameraCapture.class);
-        startActivity(intent);
+        startActivityForResult(intent,CAMERA_IMAGE);
     }
 }
