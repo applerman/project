@@ -3,6 +3,7 @@ import datetime
 import urllib
 import webapp2
 import jinja2
+import json
 import random
 from google.appengine.api import images
 from google.appengine.api import search
@@ -47,9 +48,9 @@ TAIL = """\
 class Picture(ndb.Model):  
   stream_id = ndb.StringProperty(indexed=True)
   created_date = ndb.DateTimeProperty(auto_now_add=True)
-  date = ndb.DateProperty()
+  date = ndb.DateProperty(auto_now_add=True)
   image = ndb.BlobProperty()
-  c = ndb.StringProperty()
+  caption = ndb.StringProperty()
   geo = ndb.GeoPtProperty()
 
 class Stream(ndb.Model):
@@ -261,9 +262,6 @@ class View(webapp2.RequestHandler):
       # Store image
       stream = Stream.query(Stream.name == stream_name).fetch(1)
       if stream and self.request.get('file'):
-        stream[0].last_updated_date = datetime.datetime.now()
-        stream[0].num_pictures += 1
-        stream[0].put()
         picture = Picture()
         picture.stream_id = stream_name
         picture.image = self.request.get('file')
@@ -274,6 +272,10 @@ class View(webapp2.RequestHandler):
         lon = random.uniform(-179, 179)
         picture.geo = ndb.GeoPt(lat,lon)
         picture.put()
+        stream[0].last_updated_date = datetime.datetime.now()
+        stream[0].num_pictures += 1
+        stream[0].put()
+        stream[0].put()
 
     self.redirect('/view?%s' % urllib.urlencode({'stream': stream_name}))
 
@@ -607,6 +609,133 @@ class Cron(webapp2.RequestHandler):
     if self.request.get('rebuild'):
       self.make_auto_list()
 
+class Android(webapp2.RequestHandler):
+  def get(self):
+    if self.request.get('viewstreams'):
+      streams = Stream.query().order(-Stream.last_updated_date).fetch(16)
+      streamCover = []
+      streamName = []
+      for stream in streams:
+        streamCover.append(stream.cover_img_url)
+        streamName.append(stream.name)
+      
+      dictPassed = {'streamCover':streamCover, 'streamName':streamName}
+      jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
+      self.response.write(jsonObj)
+
+    elif self.request.get('subscriptions'):
+      user_id = self.request.get('user_id')
+      cur_user = User.query(User.identity == user_id).fetch(1)
+      pictureURL = []
+      pictureStream = []
+      pictureCaption = []
+      if cur_user:
+        pictures = Picture.query(Picture.stream_id.IN(cur_user[0].subscriptions)).order(-Picture.created_date).fetch(16)
+        for picture in pictures:
+          pictureURL.append("http://connexus0.appspot.com/img?img_id=%s" % picture.key.urlsafe())
+          pictureStream.append(picture.stream_id)
+          pictureCaption.append(picture.caption)
+      
+      dictPassed = {'pictureURL':pictureURL, 'pictureStream':pictureStream, 'pictureCaption':pictureCaption}
+      jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
+      self.response.write(jsonObj)
+      
+    elif self.request.get('viewpictures'):
+      stream_name = self.request.get('stream')
+      pictureURL = []
+      pictureCaption = []
+      if stream_name:
+        pictures = Picture.query(Picture.stream_id == stream_name).order(-Picture.created_date)
+        for picture in pictures:
+          pictureURL.append("http://connexus0.appspot.com/img?img_id=%s" % picture.key.urlsafe())
+          pictureCaption.append(picture.caption)
+
+        streams = Stream.query(Stream.name == stream_name).fetch(1)
+        if streams:
+          stream = streams[0]
+          stream.num_views += 1
+          stream.time_stamp.append(datetime.datetime.now())
+          stream.put()
+
+      dictPassed = {'pictureURL':pictureURL, 'pictureCaption':pictureCaption}
+      jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
+      self.response.write(jsonObj)
+
+    elif self.request.get('search'):
+      streamCover = []
+      streamName = []
+      count = 0
+      queryString = self.request.get('show')
+
+      if queryString:
+        index = search.Index(name="myIndex")
+        try:
+          results = index.search(queryString) 
+          count = results.number_found
+
+          for scored_document in results:
+              # handle results
+              if Stream.query(Stream.name == scored_document.fields[0].value).fetch(1):
+                stream = Stream.query(Stream.name == scored_document.fields[0].value).fetch(1)[0]
+                streamCover.append(stream.cover_img_url)
+                streamName.append(stream.name)
+
+        except search.Error:
+          pass # print "Fail in searching in the Index"
+
+      dictPassed = {'streamCover':streamCover, 'streamName':streamName, 'count':count}
+      jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
+      self.response.write(jsonObj)
+      
+    elif self.request.get('nearby'):
+      lat = self.request.get('lat')
+      lon = self.request.get('lon')
+
+      pictureURL = []
+      pictureStream = []
+      pictureCaption = []
+      pictureDis = []
+
+      if lat and lon:
+        cur_pos = ndb.GeoPt(lat, lon)
+        print "OK"
+        pictures = Picture.query()
+        picList = []
+        for pic in pictures:
+          picList.append(pic)
+        picList = sorted(picList, key=lambda k: abs(k.geo.lat - cur_pos.lat) + abs(k.geo.lon - cur_pos.lon))
+        for picture in picList:
+          pictureURL.append("http://connexus0.appspot.com/img?img_id=%s" % picture.key.urlsafe())
+          pictureStream.append(picture.stream_id)
+          pictureCaption.append(picture.caption)
+          pictureDis.append(abs(picture.geo.lat - cur_pos.lat) + abs(picture.geo.lon - cur_pos.lon))
+      
+      dictPassed = {'pictureURL':pictureURL, 'pictureStream':pictureStream,
+                    'pictureCaption':pictureCaption, 'pictureDis':pictureDis}
+      jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
+      self.response.write(jsonObj)
+
+  def post(self):
+    stream_name = self.request.get('stream')
+    lat = self.request.get('lat')
+    log = self.request.get('log')
+    uploaded = self.request.get('file') 
+
+    if stream_name and lat and log and uploaded:
+      stream = Stream.query(Stream.name == stream_name).fetch(1)
+      if stream:
+        picture = Picture()
+        picture.stream_id = stream_name
+        picture.image = uploaded
+        #picture.date, auto added
+        picture.geo = ndb.GeoPt(float(lat),float(lon))
+        picture.caption = self.request.get('caption')
+        picture.put()
+        stream[0].last_updated_date = datetime.datetime.now()
+        stream[0].num_pictures += 1
+        stream[0].put()
+        stream[0].put()
+
 app = webapp2.WSGIApplication([
   ('/', Login),
   ('/manage', Manage),
@@ -617,5 +746,6 @@ app = webapp2.WSGIApplication([
   ('/social', Social),
   ('/error', Error),
   ('/img', Image),
-  ('/cron', Cron)
+  ('/cron', Cron),
+  ('/android', Android)
 ], debug=True)
