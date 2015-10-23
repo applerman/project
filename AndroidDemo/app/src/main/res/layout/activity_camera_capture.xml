@@ -10,18 +10,33 @@
         android:layout_height="fill_parent"
         android:layout_weight="1"
         />
-    <Button
-        android:id="@+id/button_capture"
-        android:text="Capture"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        />
-    <Button
-        android:id="@+id/button_use"
-        android:text="Use"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        />
+        >
+        <Button
+            android:id="@+id/button_capture"
+            android:text="Capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            />
+        <Button
+            android:id="@+id/button_use"
+            android:text="Use"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:onClick="useReturn"
+            />
+        <Button
+            android:id="@+id/view_all_images"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/imagePage"
+            android:onClick="viewAllImages"
+            />
+    </LinearLayout>
 </LinearLayout>
