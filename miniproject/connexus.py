@@ -718,10 +718,10 @@ class Android(webapp2.RequestHandler):
   def post(self):
     stream_name = self.request.get('stream')
     lat = self.request.get('lat')
-    log = self.request.get('log')
+    lon = self.request.get('lon')
     uploaded = self.request.get('file') 
 
-    if stream_name and lat and log and uploaded:
+    if stream_name and lat and lon and uploaded:
       stream = Stream.query(Stream.name == stream_name).fetch(1)
       if stream:
         picture = Picture()
