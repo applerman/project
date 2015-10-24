@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -31,19 +32,26 @@ import java.util.ArrayList;
 
 public class DisplayStreamImages extends ActionBarActivity {
     public static String STREAM = "";
-
+    public static int lastInd = 0;
     Context context = this;
     private String TAG  = "Display Images";
     private String curStream = "";
+    private int curIdx = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_streamimages);
 
         curStream = DisplayStreamImages.STREAM;
+        curIdx = DisplayStreamImages.lastInd;
+        DisplayStreamImages.lastInd = 0;
 
         TextView tv = (TextView) findViewById(R.id.view_a_stream);
         tv.setText("View A Stream: " + curStream);
+
+
+
 
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
         final String request_url = "http://connexus0.appspot.com/android?viewpictures=true&stream=" + curStream;
@@ -58,16 +66,19 @@ public class DisplayStreamImages extends ActionBarActivity {
                     JSONArray displayImages = jObject.getJSONArray("pictureURL");
                     JSONArray displayCaption = jObject.getJSONArray("pictureCaption");
 
-                    int max_images = Math.min(displayImages.length(), 16);
+                    int max_images = Math.min(displayImages.length() - curIdx, 16);
 
-                    for (int i = 0; i < max_images; i++) {
+
+
+
+                    for (int i = curIdx; i < curIdx + max_images; i++) {
 
                         imageURLs.add(displayImages.getString(i));
                         imageCaps.add(displayCaption.getString(i));
                         System.out.println(displayImages.getString(i));
                     }
                     GridView gridview = (GridView) findViewById(R.id.gridview);
-                    gridview.setAdapter(new ImageAdapter(context,imageURLs));
+                    gridview.setAdapter(new ImageAdapter(context, imageURLs));
                     gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View v,
@@ -85,6 +96,22 @@ public class DisplayStreamImages extends ActionBarActivity {
                             imageDialog.show();
                         }
                     });
+
+                    if(displayImages.length() - curIdx > 16) {
+                        Button uploadButton = (Button) findViewById(R.id.more_images);
+                        uploadButton.setClickable(true);
+
+                        uploadButton.setOnClickListener(
+                                new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        finish();
+                                        DisplayStreamImages.lastInd = curIdx + 16;
+                                        startActivity(getIntent());
+                                    }
+                                }
+                        );
+                    }
                 }
                 catch(JSONException j){
                     System.out.println("JSON Error");

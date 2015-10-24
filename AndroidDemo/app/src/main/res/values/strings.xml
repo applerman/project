@@ -18,6 +18,8 @@
     <string name="searchPage">Search Words</string>
     <string name="subscriptions">Subscriptions</string>
     <string name="edit_message">Enter Search Word</string>
+    <string name="more_images">More Images</string>
+    <string name="more_search">More Results</string>
 
     <string name="uploadImageActivity"> Upload a new image</string>
     <string name="title_activity_display_images">DisplayImages</string>

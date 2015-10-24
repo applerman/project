@@ -18,12 +18,20 @@
         android:id="@+id/gridview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnWidth="90dp"
+        android:columnWidth="80dp"
         android:numColumns="4"
-        android:verticalSpacing="10dp"
-        android:horizontalSpacing="10dp"
+        android:verticalSpacing="8dp"
+        android:horizontalSpacing="8dp"
         android:stretchMode="columnWidth"
         android:gravity="center"
+        />
+
+    <Button
+        android:id="@+id/more_images"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/more_images"
+        android:clickable="false"
         />
 
     <Button
@@ -33,15 +41,16 @@
         android:text="@string/uploadImage"
         android:onClick="uploadImages"
         />
-<!--
-    <Button
-        android:id="@+id/view_all_streams"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/streamPage"
-        android:onClick="viewAllStreams"
-        />
--->
+
+    <!--
+        <Button
+            android:id="@+id/view_all_streams"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/streamPage"
+            android:onClick="viewAllStreams"
+            />
+    -->
 
 
 </LinearLayout>
