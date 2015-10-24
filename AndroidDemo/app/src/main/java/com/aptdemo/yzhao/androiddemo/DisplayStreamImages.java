@@ -1,9 +1,9 @@
 package com.aptdemo.yzhao.androiddemo;
+
 import android.app.Dialog;
 import android.content.Context;
-
+import android.content.Intent;
 import android.os.Bundle;
-//import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,6 +13,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -26,21 +27,21 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+//import android.support.v7.app.AppCompatActivity;
 
-import org.json.*;
-import com.loopj.android.http.*;
+public class DisplayStreamImages extends ActionBarActivity {
+    public static String STREAM = "";
 
-public class DisplayImages extends ActionBarActivity {
     Context context = this;
     private String TAG  = "Display Images";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_display_images);
+        setContentView(R.layout.activity_display_streamimages);
 
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
-        final String request_url = "http://phase3back.appspot.com/viewAllPhotos";
+        final String request_url = "http://connexus0.appspot.com/android?viewpictures=true&stream=" + DisplayStreamImages.STREAM;
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
@@ -49,10 +50,12 @@ public class DisplayImages extends ActionBarActivity {
                 final ArrayList<String> imageCaps = new ArrayList<String>();
                 try {
                     JSONObject jObject = new JSONObject(new String(response));
-                    JSONArray displayImages = jObject.getJSONArray("displayImages");
-                    JSONArray displayCaption = jObject.getJSONArray("imageCaptionList");
+                    JSONArray displayImages = jObject.getJSONArray("pictureURL");
+                    JSONArray displayCaption = jObject.getJSONArray("pictureCaption");
 
-                    for (int i = 0; i < displayImages.length(); i++) {
+                    int max_images = Math.min(displayImages.length(), 16);
+
+                    for (int i = 0; i < max_images; i++) {
 
                         imageURLs.add(displayImages.getString(i));
                         imageCaps.add(displayCaption.getString(i));
@@ -110,4 +113,16 @@ public class DisplayImages extends ActionBarActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    /*
+    public void viewAllStreams(View view){
+        Intent intent= new Intent(this, DisplayStreams.class);
+        startActivity(intent);
+    }
+*/
+    public void uploadImages(View view) {
+        Intent intent = new Intent(context, ImageUpload.class);
+        startActivity(intent);
+    }
+
 }

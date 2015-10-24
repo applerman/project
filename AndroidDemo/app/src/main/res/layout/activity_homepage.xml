@@ -65,11 +65,27 @@
             android:onClick="viewAllImages"
             />
 
-        <Button
+        <!--
+            <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/uploadImageActivity"
             android:clickable="false"
             android:id="@+id/open_image_upload_page"/>
+                -->
+
+        <Button
+            android:id="@+id/view_all_streams"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/streamPage"
+            android:onClick="viewAllStreams"
+            />
+
+        <TextView
+            android:text="@string/bottom"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            />
     </LinearLayout>
 </ScrollView>

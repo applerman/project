@@ -32,6 +32,26 @@
             android:label="@string/title_activity_display_images" >
         </activity>
         <activity
+            android:name=".DisplayStreams"
+            android:label="@string/title_activity_display_streams" >
+        </activity>
+        <activity
+            android:name=".DisplayStreamImages"
+            android:label="@string/title_activity_display_streamimages" >
+        </activity>
+        <activity
+            android:name=".Search"
+            android:label="@string/title_activity_display_search" >
+        </activity>
+        <activity
+            android:name=".DisplaySubscriptions"
+            android:label="@string/title_activity_display_subscriptions" >
+        </activity>
+        <activity
+            android:name=".DisplayNearbyImages"
+            android:label="@string/title_activity_display_nearbyimages" >
+        </activity>
+        <activity
             android:name=".ImageUpload"
             android:label="@string/title_activity_image_upload" >
         </activity>

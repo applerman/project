@@ -1,9 +1,9 @@
 package com.aptdemo.yzhao.androiddemo;
+
 import android.app.Dialog;
 import android.content.Context;
-
+import android.content.Intent;
 import android.os.Bundle;
-//import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -26,21 +27,22 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+//import android.support.v7.app.AppCompatActivity;
 
-import org.json.*;
-import com.loopj.android.http.*;
-
-public class DisplayImages extends ActionBarActivity {
+public class Search extends ActionBarActivity {
     Context context = this;
     private String TAG  = "Display Images";
+    public static String WORD = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_display_images);
+        setContentView(R.layout.activity_display_search);
 
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
-        final String request_url = "http://phase3back.appspot.com/viewAllPhotos";
+        //final String request_url = "http://phase3back.appspot.com/viewAllPhotos";
+        final String request_url = "http://connexus0.appspot.com/android?search=true&show=" + Search.WORD;
+
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
@@ -49,12 +51,16 @@ public class DisplayImages extends ActionBarActivity {
                 final ArrayList<String> imageCaps = new ArrayList<String>();
                 try {
                     JSONObject jObject = new JSONObject(new String(response));
-                    JSONArray displayImages = jObject.getJSONArray("displayImages");
-                    JSONArray displayCaption = jObject.getJSONArray("imageCaptionList");
+                    JSONArray displayImages = jObject.getJSONArray("streamCover");
+                    JSONArray displayCaption = jObject.getJSONArray("streamName");
 
-                    for (int i = 0; i < displayImages.length(); i++) {
-
-                        imageURLs.add(displayImages.getString(i));
+                    for(int i=0;i<displayImages.length();i++) {
+                        if(displayImages.getString(i).isEmpty()){
+                            imageURLs.add("https://dl.dropboxusercontent.com/u/5338122/images.png");
+                        }
+                        else {
+                            imageURLs.add(displayImages.getString(i));
+                        }
                         imageCaps.add(displayCaption.getString(i));
                         System.out.println(displayImages.getString(i));
                     }
@@ -67,14 +73,19 @@ public class DisplayImages extends ActionBarActivity {
 
                             Toast.makeText(context, imageCaps.get(position), Toast.LENGTH_SHORT).show();
 
-                            Dialog imageDialog = new Dialog(context);
-                            imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                            imageDialog.setContentView(R.layout.thumbnail);
-                            ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
+                            //Dialog imageDialog = new Dialog(context);
+                            //imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                            //imageDialog.setContentView(R.layout.thumbnail);
+                            //ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
 
-                            Picasso.with(context).load(imageURLs.get(position)).into(image);
+                            //Picasso.with(context).load(imageURLs.get(position)).into(image);
 
-                            imageDialog.show();
+                            //imageDialog.show();
+
+                            DisplayStreamImages.STREAM = imageCaps.get(position);
+                            System.out.println(DisplayStreamImages.STREAM);
+                            Intent intent = new Intent(context, DisplayStreamImages.class);
+                            startActivity(intent);
                         }
                     });
                 }
@@ -109,5 +120,11 @@ public class DisplayImages extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    public void viewSearchPage(View view){
+        EditText editText = (EditText) findViewById(R.id.edit_message);
+        Search.WORD = editText.getText().toString();
+        Intent intent= new Intent(this, Search.class);
+        startActivity(intent);
     }
 }

@@ -197,10 +197,19 @@ public class ImageUpload extends ActionBarActivity {
     }
 
     private void postToServer(byte[] encodedImage,String photoCaption, String upload_url){
+
+        upload_url = "http://connexus0.appspot.com/android";
         System.out.println(upload_url);
         RequestParams params = new RequestParams();
+        //params.put("file",new ByteArrayInputStream(encodedImage));
+        //params.put("photoCaption", photoCaption);
+
+        params.put("stream", DisplayStreamImages.STREAM);
         params.put("file",new ByteArrayInputStream(encodedImage));
-        params.put("photoCaption", photoCaption);
+        params.put("lat", "20");
+        params.put("lon", "20");
+        params.put("caption", photoCaption);
+
         AsyncHttpClient client = new AsyncHttpClient();
         client.post(upload_url, params, new AsyncHttpResponseHandler() {
             @Override
