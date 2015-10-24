@@ -698,7 +698,6 @@ class Android(webapp2.RequestHandler):
 
       if lat and lon:
         cur_pos = ndb.GeoPt(lat, lon)
-        print "OK"
         pictures = Picture.query()
         picList = []
         for pic in pictures:
