@@ -683,7 +683,7 @@ class Android(webapp2.RequestHandler):
         except search.Error:
           pass # print "Fail in searching in the Index"
 
-      dictPassed = {'streamCover':streamCover, 'streamName':streamName, 'count':count}
+      dictPassed = {'streamCover':streamCover, 'streamName':streamName, 'count':[str(count)]}
       jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
       self.response.write(jsonObj)
       
