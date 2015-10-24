@@ -37,6 +37,8 @@ public class DisplayNearbyImages extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_nearbyimages);
 
+
+
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
         final String request_url = "http://connexus0.appspot.com/android?nearby=true&lat=20&lon=20";
         AsyncHttpClient httpClient = new AsyncHttpClient();

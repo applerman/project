@@ -7,12 +7,11 @@
     tools:context="com.aptdemo.yzhao.androiddemo.DisplayImages">
 
     <TextView
-        android:text="@string/streamImagePage"
+        android:id="@+id/view_a_stream"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textSize="40sp"
-        android:paddingBottom = "40sp"
+        android:textSize="20sp"
         />
 
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"

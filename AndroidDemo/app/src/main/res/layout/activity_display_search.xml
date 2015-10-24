@@ -11,8 +11,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textSize="40sp"
-        android:paddingBottom = "40sp"
+        android:textSize="20sp"
         />
     <EditText android:id="@+id/edit_message"
         android:layout_width="match_parent"
@@ -26,6 +25,15 @@
         android:text="@string/searchPage"
         android:onClick="viewSearchPage"
         />
+
+    <TextView
+        android:id="@+id/search_result"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:paddingBottom = "20sp"
+        />
+
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/gridview"
         android:layout_width="match_parent"

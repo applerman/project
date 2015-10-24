@@ -34,14 +34,19 @@ public class DisplayStreamImages extends ActionBarActivity {
 
     Context context = this;
     private String TAG  = "Display Images";
-
+    private String curStream = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_streamimages);
 
+        curStream = DisplayStreamImages.STREAM;
+
+        TextView tv = (TextView) findViewById(R.id.view_a_stream);
+        tv.setText("View A Stream: " + curStream);
+
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
-        final String request_url = "http://connexus0.appspot.com/android?viewpictures=true&stream=" + DisplayStreamImages.STREAM;
+        final String request_url = "http://connexus0.appspot.com/android?viewpictures=true&stream=" + curStream;
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
@@ -121,6 +126,7 @@ public class DisplayStreamImages extends ActionBarActivity {
     }
 */
     public void uploadImages(View view) {
+        DisplayStreamImages.STREAM = curStream;
         Intent intent = new Intent(context, ImageUpload.class);
         startActivity(intent);
     }

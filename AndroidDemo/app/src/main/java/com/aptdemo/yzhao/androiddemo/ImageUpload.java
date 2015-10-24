@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -35,11 +36,18 @@ import java.io.ByteArrayOutputStream;
 public class ImageUpload extends ActionBarActivity {
     private static final int PICK_IMAGE = 1;
     private static final int CAMERA_IMAGE = 2;
+    private String curStream = "";
     Context context = this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_upload);
+
+        curStream = DisplayStreamImages.STREAM;
+
+
+        TextView tv = (TextView) findViewById(R.id.cur_stream);
+        tv.setText("Stream: " + curStream);
 
         // Choose image from library
         Button chooseFromLibraryButton = (Button) findViewById(R.id.choose_from_library);
@@ -204,7 +212,7 @@ public class ImageUpload extends ActionBarActivity {
         //params.put("file",new ByteArrayInputStream(encodedImage));
         //params.put("photoCaption", photoCaption);
 
-        params.put("stream", DisplayStreamImages.STREAM);
+        params.put("stream", curStream);
         params.put("file",new ByteArrayInputStream(encodedImage));
         params.put("lat", "20");
         params.put("lon", "20");
