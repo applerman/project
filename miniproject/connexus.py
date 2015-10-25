@@ -725,7 +725,7 @@ class Android(webapp2.RequestHandler):
       if stream:
         picture = Picture()
         picture.stream_id = stream_name
-        picture.image = images.resize(uploaded, height=96, allow_stretch=False))
+        picture.image = images.resize(uploaded, height=960, allow_stretch=False)
         #picture.date, auto added
         picture.geo = ndb.GeoPt(float(lat),float(lon))
         picture.caption = self.request.get('caption')
