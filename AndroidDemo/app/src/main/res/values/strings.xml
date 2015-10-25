@@ -27,7 +27,7 @@
     <string name="title_activity_display_streamimages">DisplayStreamImages</string>
     <string name="title_activity_display_nearbyimages">DisplayNearByImages</string>
     <string name="title_activity_display_search">Search Words</string>
-    <string name="title_activity_display_subscriptions">Search Words</string>
+    <string name="title_activity_display_subscriptions">View Subscription</string>
 
     <string name="title_activity_image_upload">ImageUpload</string>
     <string name="title_activity_camera_capture">CameraCapture</string>
