@@ -11,9 +11,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -32,16 +34,23 @@ import java.util.ArrayList;
 public class Search extends ActionBarActivity {
     Context context = this;
     private String TAG  = "Display Images";
+    private String SearchedWord = "";
     public static String WORD = "";
+    public static int lastInd = 0;
+    private int curIdx = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_search);
 
+        curIdx = Search.lastInd;
+        Search.lastInd = 0;
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
         //final String request_url = "http://phase3back.appspot.com/viewAllPhotos";
-        final String request_url = "http://connexus0.appspot.com/android?search=true&show=" + Search.WORD;
+        SearchedWord = Search.WORD;
+        final String request_url = "http://connexus0.appspot.com/android?search=true&show=" + SearchedWord;
+        Search.WORD = "";
 
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
@@ -53,8 +62,16 @@ public class Search extends ActionBarActivity {
                     JSONObject jObject = new JSONObject(new String(response));
                     JSONArray displayImages = jObject.getJSONArray("streamCover");
                     JSONArray displayCaption = jObject.getJSONArray("streamName");
+                    JSONArray count = jObject.getJSONArray("count");
 
-                    for(int i=0;i<displayImages.length();i++) {
+                    if(!SearchedWord.isEmpty()) {
+                        TextView tv = (TextView) findViewById(R.id.search_result);
+                        tv.setText(count.getString(0) + " results for " + SearchedWord + "\nClick on an image to view stream.");
+                    }
+
+                    int max_images = Math.min(displayImages.length() - curIdx, 8);
+
+                    for (int i = curIdx; i < curIdx + max_images; i++) {
                         if(displayImages.getString(i).isEmpty()){
                             imageURLs.add("https://dl.dropboxusercontent.com/u/5338122/images.png");
                         }
@@ -88,6 +105,24 @@ public class Search extends ActionBarActivity {
                             startActivity(intent);
                         }
                     });
+
+                    if(displayImages.length() - curIdx > 8) {
+                        Button uploadButton = (Button) findViewById(R.id.more_images);
+                        uploadButton.setClickable(true);
+
+                        uploadButton.setOnClickListener(
+                                new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        finish();
+                                        Search.lastInd = curIdx + 8;
+                                        Search.WORD = SearchedWord;
+                                        startActivity(getIntent());
+                                    }
+                                }
+                        );
+                    }
+
                 }
                 catch(JSONException j){
                     System.out.println("JSON Error");

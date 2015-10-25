@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -31,14 +32,25 @@ import java.util.ArrayList;
 public class DisplayNearbyImages extends ActionBarActivity {
     Context context = this;
     private String TAG  = "Display NearBy Images";
-
+    public static int lastInd = 0;
+    private int curIdx = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_nearbyimages);
 
+        curIdx = DisplayNearbyImages.lastInd;
+        DisplayNearbyImages.lastInd = 0;
+
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
-        final String request_url = "http://connexus0.appspot.com/android?nearby=true&lat=20&lon=20";
+
+        Intent intent = getIntent();
+        double lat = intent.getDoubleExtra("Lat", 20.0);
+        double lon = intent.getDoubleExtra("Lon",20.0);
+        String sLat = String.valueOf(lat);
+        String sLon = String.valueOf(lon);
+
+        final String request_url = "http://connexus0.appspot.com/android?nearby=true&lat=" + sLat + "&lon=" + sLon;
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
@@ -53,9 +65,9 @@ public class DisplayNearbyImages extends ActionBarActivity {
                     JSONArray displayCaption = jObject.getJSONArray("pictureCaption");
                     JSONArray displayStreams = jObject.getJSONArray("pictureStream");
 
-                    int max_images = Math.min(displayImages.length(), 16);
+                    int max_images = Math.min(displayImages.length() - curIdx, 16);
 
-                    for (int i = 0; i < max_images; i++) {
+                    for (int i = curIdx; i < curIdx + max_images; i++) {
 
                         imageURLs.add(displayImages.getString(i));
                         imageCaps.add(displayCaption.getString(i));
@@ -85,10 +97,28 @@ public class DisplayNearbyImages extends ActionBarActivity {
                             startActivity(intent);
                         }
                     });
+
+
+                    if(displayImages.length() - curIdx > 16) {
+                        Button uploadButton = (Button) findViewById(R.id.more_images);
+                        uploadButton.setClickable(true);
+
+                        uploadButton.setOnClickListener(
+                                new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        finish();
+                                        DisplayNearbyImages.lastInd = curIdx + 16;
+                                        startActivity(getIntent());
+                                    }
+                                }
+                        );
+                    }
                 }
                 catch(JSONException j){
                     System.out.println("JSON Error");
                 }
+
 
             }
 

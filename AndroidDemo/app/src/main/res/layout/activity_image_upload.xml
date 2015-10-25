@@ -55,5 +55,12 @@
             android:clickable="false"
             android:id="@+id/upload_to_server"
             />
+
+        <TextView
+            android:id="@+id/cur_stream"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+        />
     </LinearLayout>
 </ScrollView>
