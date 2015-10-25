@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.location.Location;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -21,6 +22,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationServices;
+
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -33,11 +39,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 
-public class ImageUpload extends ActionBarActivity {
+public class ImageUpload extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks ,OnConnectionFailedListener {
     private static final int PICK_IMAGE = 1;
     private static final int CAMERA_IMAGE = 2;
     private String curStream = "";
     Context context = this;
+
+    protected GoogleApiClient mGoogleApiClient;
+    protected Location mLastLocation;
+    protected double mLatitude;
+    protected double mLongitude;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +76,16 @@ public class ImageUpload extends ActionBarActivity {
                     }
                 }
         );
+
+        buildGoogleApiClient();
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
     }
 
     @Override
@@ -214,8 +236,8 @@ public class ImageUpload extends ActionBarActivity {
 
         params.put("stream", curStream);
         params.put("file",new ByteArrayInputStream(encodedImage));
-        params.put("lat", "20");
-        params.put("lon", "20");
+        params.put("lat", mLatitude);
+        params.put("lon", mLongitude);
         params.put("caption", photoCaption);
 
         AsyncHttpClient client = new AsyncHttpClient();
@@ -240,6 +262,41 @@ public class ImageUpload extends ActionBarActivity {
 
     public void useCameraCapture(View view){
         Intent intent= new Intent(this, CameraCapture.class);
-        startActivityForResult(intent,CAMERA_IMAGE);
+        startActivityForResult(intent, CAMERA_IMAGE);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            mLatitude = mLastLocation.getLatitude();
+            mLongitude = mLastLocation.getLongitude();
+            System.out.println(mLatitude);
+            System.out.println(mLongitude);
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
     }
 }
