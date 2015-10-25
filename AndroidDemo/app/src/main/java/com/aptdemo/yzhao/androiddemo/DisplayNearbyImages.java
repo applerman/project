@@ -44,9 +44,13 @@ public class DisplayNearbyImages extends ActionBarActivity {
 
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
 
-        
+        Intent intent = getIntent();
+        double lat = intent.getDoubleExtra("Lat", 20.0);
+        double lon = intent.getDoubleExtra("Lon",20.0);
+        String sLat = String.valueOf(lat);
+        String sLon = String.valueOf(lon);
 
-        final String request_url = "http://connexus0.appspot.com/android?nearby=true&lat=20&lon=20";
+        final String request_url = "http://connexus0.appspot.com/android?nearby=true&lat=" + sLat + "&lon=" + sLon;
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override

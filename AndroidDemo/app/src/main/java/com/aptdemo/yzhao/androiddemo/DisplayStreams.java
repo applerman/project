@@ -3,6 +3,7 @@ package com.aptdemo.yzhao.androiddemo;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.text.style.SubscriptSpan;
@@ -18,6 +19,9 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.squareup.picasso.Picasso;
@@ -31,9 +35,15 @@ import java.util.ArrayList;
 
 //import android.support.v7.app.AppCompatActivity;
 
-public class DisplayStreams extends ActionBarActivity {
+public class DisplayStreams extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks ,GoogleApiClient.OnConnectionFailedListener {
     Context context = this;
     private String TAG  = "Display Images";
+
+    protected GoogleApiClient mGoogleApiClient;
+    protected Location mLastLocation;
+    protected double mLatitude;
+    protected double mLongitude;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +120,16 @@ public class DisplayStreams extends ActionBarActivity {
                     }
                 }
         );
+
+        buildGoogleApiClient();
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
     }
 
     @Override
@@ -133,6 +153,8 @@ public class DisplayStreams extends ActionBarActivity {
 
     public void viewNearBy(View view){
         Intent intent= new Intent(this, DisplayNearbyImages.class);
+        intent.putExtra("Lat",mLatitude);
+        intent.putExtra("Lon",mLongitude);
         startActivity(intent);
     }
     public void viewSearchPage(View view){
@@ -140,5 +162,41 @@ public class DisplayStreams extends ActionBarActivity {
         Search.WORD = editText.getText().toString();
         Intent intent= new Intent(this, Search.class);
         startActivity(intent);
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            mLatitude = mLastLocation.getLatitude();
+            mLongitude = mLastLocation.getLongitude();
+            System.out.println(mLatitude);
+            System.out.println(mLongitude);
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
     }
 }
