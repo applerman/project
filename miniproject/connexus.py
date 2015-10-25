@@ -707,7 +707,7 @@ class Android(webapp2.RequestHandler):
           pictureURL.append("http://connexus0.appspot.com/img?img_id=%s" % picture.key.urlsafe())
           pictureStream.append(picture.stream_id)
           pictureCaption.append(picture.caption)
-          pictureDis.append(abs(picture.geo.lat - cur_pos.lat) + abs(picture.geo.lon - cur_pos.lon))
+          pictureDis.append(str(abs(picture.geo.lat - cur_pos.lat) + abs(picture.geo.lon - cur_pos.lon)))
       
       dictPassed = {'pictureURL':pictureURL, 'pictureStream':pictureStream,
                     'pictureCaption':pictureCaption, 'pictureDis':pictureDis}
@@ -725,7 +725,7 @@ class Android(webapp2.RequestHandler):
       if stream:
         picture = Picture()
         picture.stream_id = stream_name
-        picture.image = uploaded
+        picture.image = images.resize(uploaded, height=96, allow_stretch=False))
         #picture.date, auto added
         picture.geo = ndb.GeoPt(float(lat),float(lon))
         picture.caption = self.request.get('caption')
