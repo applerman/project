@@ -66,7 +66,7 @@ class Stream(ndb.Model):
 
 class User(ndb.Model):
   identity = ndb.StringProperty(indexed=True)
-  email = ndb.StringProperty()
+  email = ndb.StringProperty(indexed=True)
   subscriptions = ndb.StringProperty(repeated=True)
   trending_report = ndb.StringProperty(indexed=True)
 
@@ -624,8 +624,8 @@ class Android(webapp2.RequestHandler):
       self.response.write(jsonObj)
 
     elif self.request.get('subscriptions'):
-      user_id = self.request.get('user_id')
-      cur_user = User.query(User.identity == user_id).fetch(1)
+      user_email = self.request.get('email')
+      cur_user = User.query(User.email == user_email).fetch(1)
       pictureURL = []
       pictureStream = []
       pictureCaption = []
@@ -707,7 +707,7 @@ class Android(webapp2.RequestHandler):
           pictureURL.append("http://connexus0.appspot.com/img?img_id=%s" % picture.key.urlsafe())
           pictureStream.append(picture.stream_id)
           pictureCaption.append(picture.caption)
-          pictureDis.append(str(abs(picture.geo.lat - cur_pos.lat) + abs(picture.geo.lon - cur_pos.lon)))
+          pictureDis.append(str(round(abs(picture.geo.lat - cur_pos.lat) + abs(picture.geo.lon - cur_pos.lon), 2)))
       
       dictPassed = {'pictureURL':pictureURL, 'pictureStream':pictureStream,
                     'pictureCaption':pictureCaption, 'pictureDis':pictureDis}
@@ -728,7 +728,7 @@ class Android(webapp2.RequestHandler):
         picture.image = images.resize(uploaded, height=960, allow_stretch=False)
         #picture.date, auto added
         picture.geo = ndb.GeoPt(float(lat),float(lon))
-        picture.caption = self.request.get('caption')
+        picture.caption = self.request.get('caption').strip()
         picture.put()
         stream[0].last_updated_date = datetime.datetime.now()
         stream[0].num_pictures += 1
