@@ -35,7 +35,7 @@ public class DisplaySubscriptions extends ActionBarActivity {
         setContentView(R.layout.activity_display_subscriptions);
 
 //        final String request_url = "http://aptandroiddemo.appspot.com/viewAllPhotos";
-        final String request_url = "http://connexus0.appspot.com/android?nearby=true&lat=20&lon=20";
+        final String request_url = "http://connexus0.appspot.com/android?subscriptions=true&email=" + Homepage.email;
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
@@ -60,7 +60,8 @@ public class DisplaySubscriptions extends ActionBarActivity {
                         System.out.println(displayImages.getString(i));
                     }
                     GridView gridview = (GridView) findViewById(R.id.gridview);
-                    gridview.setAdapter(new ImageAdapter(context, imageURLs));
+                    //gridview.setAdapter(new ImageAdapter(context, imageURLs));
+                    gridview.setAdapter(new GridAdapter(context, imageURLs, imageStreams));
                     gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View v,

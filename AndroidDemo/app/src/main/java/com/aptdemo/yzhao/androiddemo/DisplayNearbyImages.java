@@ -58,12 +58,13 @@ public class DisplayNearbyImages extends ActionBarActivity {
                 final ArrayList<String> imageURLs = new ArrayList<String>();
                 final ArrayList<String> imageCaps = new ArrayList<String>();
                 final ArrayList<String> imageStreams = new ArrayList<String>();
-
+                final ArrayList<String> imageDistances = new ArrayList<String>();
                 try {
                     JSONObject jObject = new JSONObject(new String(response));
                     JSONArray displayImages = jObject.getJSONArray("pictureURL");
                     JSONArray displayCaption = jObject.getJSONArray("pictureCaption");
                     JSONArray displayStreams = jObject.getJSONArray("pictureStream");
+                    JSONArray displayDistances = jObject.getJSONArray("pictureDis");
 
                     int max_images = Math.min(displayImages.length() - curIdx, 16);
 
@@ -72,10 +73,11 @@ public class DisplayNearbyImages extends ActionBarActivity {
                         imageURLs.add(displayImages.getString(i));
                         imageCaps.add(displayCaption.getString(i));
                         imageStreams.add(displayStreams.getString(i));
+                        imageDistances.add(displayDistances.getString(i));
                         System.out.println(displayImages.getString(i));
                     }
                     GridView gridview = (GridView) findViewById(R.id.gridview);
-                    gridview.setAdapter(new ImageAdapter(context,imageURLs));
+                    gridview.setAdapter(new GridAdapter(context, imageURLs, imageDistances));
                     gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View v,

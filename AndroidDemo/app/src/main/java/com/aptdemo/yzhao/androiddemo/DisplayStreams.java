@@ -73,7 +73,8 @@ public class DisplayStreams extends ActionBarActivity implements GoogleApiClient
                         System.out.println(displayImages.getString(i));
                     }
                     GridView gridview = (GridView) findViewById(R.id.gridview);
-                    gridview.setAdapter(new ImageAdapter(context,imageURLs));
+                    gridview.setAdapter(new GridAdapter(context, imageURLs, imageCaps));
+                    //gridview.setAdapter(new ImageAdapter(context, imageURLs));
                     gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View v,
@@ -108,19 +109,20 @@ public class DisplayStreams extends ActionBarActivity implements GoogleApiClient
             }
         });
 
-        Button uploadButton = (Button) findViewById(R.id.view_subscriptions);
-        uploadButton.setClickable(true);
+        if(!Homepage.email.isEmpty()) {
+            Button uploadButton = (Button) findViewById(R.id.view_subscriptions);
+            uploadButton.setClickable(true);
 
-        uploadButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(context, DisplaySubscriptions.class);
-                        startActivity(intent);
+            uploadButton.setOnClickListener(
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(context, DisplaySubscriptions.class);
+                            startActivity(intent);
+                        }
                     }
-                }
-        );
-
+            );
+        }
         buildGoogleApiClient();
     }
 
