@@ -55,6 +55,7 @@
         android:layout_height="wrap_content"
         android:text="@string/subscriptions"
         android:clickable="false"
+        android:visibility="gone"
         android:id="@+id/view_subscriptions"/>
 
 </LinearLayout>

@@ -109,10 +109,10 @@ public class DisplayStreams extends ActionBarActivity implements GoogleApiClient
             }
         });
 
-        if(!Homepage.email.isEmpty()) {
+        if(Homepage.email != null) {
             Button uploadButton = (Button) findViewById(R.id.view_subscriptions);
             uploadButton.setClickable(true);
-
+            uploadButton.setVisibility(View.VISIBLE);
             uploadButton.setOnClickListener(
                     new View.OnClickListener() {
                         @Override
