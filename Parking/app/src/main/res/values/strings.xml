@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Parking</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="welcome">Connexus!</string>
+    <string name="bottom">The World\'s Greatest Photosharing App.</string>
+    <string name="uploadImage">Upload Image</string>
+    <string name="upload_hint">Add a caption for photo</string>
+    <string name="choose_from_library">Choose From Library</string>
+    <string name="use_camera">Use camera</string>
+
+    <string name="imagePage">View Sample Images</string>
+    <string name="streamPage">View Streams</string>
+    <string name="streamImagePage">View A Stream</string>
+    <string name="nearbyPage">View Nearby</string>
+    <string name="searchPage">Search Words</string>
+    <string name="subscriptions">My Subscribed Streams</string>
+    <string name="edit_message">Enter Search Word</string>
+    <string name="more_images">More Images</string>
+    <string name="more_search">More Results</string>
+
+    <string name="uploadImageActivity"> Upload a new image</string>
+    <string name="title_activity_display_images">DisplayImages</string>
+    <string name="title_activity_display_streams">Display Streams</string>
+    <string name="title_activity_display_streamimages">Display A Stream</string>
+    <string name="title_activity_display_nearbyimages">Display Nearby Images</string>
+    <string name="title_activity_display_search">Search Words</string>
+    <string name="title_activity_display_subscriptions">View My Subscriptions</string>
+
+    <string name="title_activity_image_upload">Image Upload</string>
+    <string name="title_activity_camera_capture">Camera Capture</string>
+
+    <string name="circles_title">Visible circles:</string>
+    <string name="sign_out_button_name">Sign out</string>
+    <string name="revoke_access_button_name">Revoke</string>
+
+    <string name="status_sign_in_required">Sign-in required</string>
+    <string name="status_sign_in_error">Error signing in: %s</string>
+    <string name="status_loading">Loading…</string>
+    <string name="status_signing_in">Signing in with Google+…</string>
+    <string name="status_signed_out">Signed out</string>
+    <string name="status_revoke_access">Revoked access</string>
+    <string name="status_revoke_access_error">Error revoking access: %s</string>
+    <string name="signed_in_as">Signed in as %s</string>
+
+    <!-- Used if there was an error loading the signed in user's name. -->
+    <string name="unknown_person">Unknown</string>
+    <string name="play_services_error">Google Play services is not available.  This application will close.</string>
+    <string name="close">Close</string>
+    <string name="profile_picture">User\'s profile picture.</string>
+    <string name="mock_server_has_token">Mock server has refresh token?</string>
+    <string name="request_server_auth_code">Request server auth code?</string>
+    <string name="configuration_error">Error: the value of WEB_CLIENT_ID or SERVER_BASE_URL is not  set correctly. This will cause errors when requesting a server auth code.</string>
+
+
+</resources>
