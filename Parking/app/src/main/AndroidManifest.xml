@@ -28,28 +28,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DisplayImages"
-            android:label="@string/title_activity_display_images" >
+            android:name=".RememberThis"
+            android:label="@string/title_activity_remember_this" >
         </activity>
         <activity
-            android:name=".DisplayStreams"
-            android:label="@string/title_activity_display_streams" >
+            android:name=".ReturnToMyCar"
+            android:label="@string/title_activity_return_to_my_car" >
         </activity>
         <activity
-            android:name=".DisplayStreamImages"
-            android:label="@string/title_activity_display_streamimages" >
+            android:name=".MyHistory"
+            android:label="@string/title_activity_my_history" >
         </activity>
         <activity
-            android:name=".Search"
-            android:label="@string/title_activity_display_search" >
-        </activity>
-        <activity
-            android:name=".DisplaySubscriptions"
-            android:label="@string/title_activity_display_subscriptions" >
-        </activity>
-        <activity
-            android:name=".DisplayNearbyImages"
-            android:label="@string/title_activity_display_nearbyimages" >
+            android:name=".RecentlyEmptySpots"
+            android:label="@string/title_activity_recently_empty_spots" >
         </activity>
         <activity
             android:name=".ImageUpload"

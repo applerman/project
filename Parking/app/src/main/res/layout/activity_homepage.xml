@@ -40,7 +40,6 @@
                 android:enabled="false" />
             </LinearLayout>
 
-
         <TextView
             android:id="@+id/sign_in_status"
             android:layout_width="wrap_content"
@@ -54,38 +53,53 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="40sp"
-            android:paddingBottom = "40sp"
+            android:paddingBottom = "10sp"
             />
 
         <Button
-            android:id="@+id/view_all_images"
+            android:id="@+id/remember_this"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/imagePage"
-            android:onClick="viewAllImages"
+            android:gravity="center"
+            android:text="@string/remember_this"
+            android:onClick="rememberThis"
             />
-
-        <!--
-            <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/uploadImageActivity"
-            android:clickable="false"
-            android:id="@+id/open_image_upload_page"/>
-                -->
 
         <Button
-            android:id="@+id/view_all_streams"
+            android:id="@+id/return_to_my_car"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/streamPage"
-            android:onClick="viewAllStreams"
+            android:gravity="center"
+            android:text="@string/return_to_my_car"
+            android:onClick="returnToMyCar"
             />
 
-        <TextView
-            android:text="@string/bottom"
-            android:layout_width="fill_parent"
+        <Button
+            android:id="@+id/shared_location"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/shared_location"
+            android:onClick="sharedLocation"
             />
+
+        <Button
+            android:id="@+id/my_history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/my_history"
+            android:onClick="myHistory"
+            />
+
+        <Button
+            android:id="@+id/recently_empty_spots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/recently_empty_spots"
+            android:onClick="recentlyEmptySpots"
+            />
+
     </LinearLayout>
 </ScrollView>

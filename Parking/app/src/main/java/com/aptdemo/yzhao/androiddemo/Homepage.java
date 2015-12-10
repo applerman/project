@@ -373,13 +373,27 @@ public class Homepage extends ActionBarActivity implements
         mGoogleApiClient.connect();
     }
 
-    public void viewAllImages(View view){
-        Intent intent= new Intent(this, DisplayImages.class);
+    public void rememberThis(View view){
+        Intent intent= new Intent(this, RememberThis.class);
         startActivity(intent);
     }
 
-    public void viewAllStreams(View view){
-        Intent intent= new Intent(this, DisplayStreams.class);
+    public void returnToMyCar(View view){
+        Intent intent= new Intent(this, ReturnToMyCar.class);
+        startActivity(intent);
+    }
+
+    public void sharedLocation(View view){
+
+    }
+
+    public void myHistory(View view){
+        Intent intent= new Intent(this, MyHistory.class);
+        startActivity(intent);
+    }
+
+    public void recentlyEmptySpots(View view){
+        Intent intent= new Intent(this, RecentlyEmptySpots.class);
         startActivity(intent);
     }
 }

@@ -1,0 +1,54 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.aptdemo.yzhao.androiddemo.DisplayImages">
+
+    <Button
+        android:id="@+id/use_map"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/use_map"
+        android:onClick="useMap"
+        />
+
+    <Button
+        android:id="@+id/street_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/street_view"
+        android:onClick="streetView"
+        />
+
+    <Button
+        android:id="@+id/use_picture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/use_picture"
+        android:onClick="usePicture"
+        />
+
+    <Button
+        android:id="@+id/use_current"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/use_current"
+        android:onClick="useCurrent"
+        />
+
+    <Button
+        android:id="@+id/confirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/confirm"
+        android:onClick="confirm"
+        />
+
+</LinearLayout>
