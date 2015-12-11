@@ -140,8 +140,4 @@ public class CameraCapture extends ActionBarActivity {
         finish();
     }
 
-    public void viewAllImages(View view){
-        Intent intent= new Intent(this, DisplayImages.class);
-        startActivity(intent);
-    }
 }

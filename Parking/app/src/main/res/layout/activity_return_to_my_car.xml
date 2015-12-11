@@ -16,15 +16,6 @@
         />
 
     <Button
-        android:id="@+id/route_planning"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/route_planning"
-        android:onClick="routePlanning"
-        />
-
-    <Button
         android:id="@+id/street_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,6 +31,15 @@
         android:gravity="center"
         android:text="@string/view_picture"
         android:onClick="viewPicture"
+        />
+
+    <Button
+        android:id="@+id/route_planning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/route_planning"
+        android:onClick="routePlanning"
         />
 
     <Button
