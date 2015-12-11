@@ -41,19 +41,22 @@ class Park(webapp2.RequestHandler):
       parkingLat = []
       parkingLon = []
       parkingDone = []
+      parkingDatetime = []
       parkingImgURL = []
 
       for parking in parkings:
         parkingLat.append(parking.geo.lat)
         parkingLon.append(parking.geo.lon)
         parkingDone.append(parking.done_parking)
+        parkingDatetime.append(parking.created_time.strftime("%Y-%m-%d %H:%M:%S"))
         if parking.image:
           parkingImgURL.append("http://parkingrighthere.appspot.com/img?img_id=%s" % parking.key.urlsafe())
         else:
           parkingImgURL.append("")
 
       dictPassed = {'parkingLat':parkingLat, 'parkingLon':parkingLon,
-                    'parkingDone':parkingDone, 'parkingImgURL':parkingImgURL}
+                    'parkingDone':parkingDone, 'parkingImgURL':parkingImgURL,
+                    'parkingDatetime':parkingDatetime};
 
       jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
       self.response.write(jsonObj)
@@ -69,9 +72,9 @@ class Park(webapp2.RequestHandler):
       parking = Parking()
       parking.user_email = self.request.get('user_email')
       parking.geo = ndb.GeoPt(float(lat), float(lon))
-      image = self.request.get('image')
-      if image:
-        parking.image = images.resize(image, height=1080, allow_stretch=False)
+      parking.image = self.request.get('image')
+      #if image:
+      #  parking.image = images.resize(image, height=1080, allow_stretch=False)
       parking.description = self.request.get('description')
       parking.done_parking = False
       parking.shared_parking = bool(self.request.get('shared_parking'))
