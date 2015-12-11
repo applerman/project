@@ -185,7 +185,7 @@ public class SharedLocations extends AppCompatActivity {
      */
     private static void setMapLocation(GoogleMap map, NamedLocation data) {
         // Add a marker for this item and set the camera
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(data.location, 13f));
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(data.location, 16f));
         map.addMarker(new MarkerOptions().position(data.location));
 
         // Set the map type back to normal.
