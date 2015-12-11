@@ -384,7 +384,8 @@ public class Homepage extends ActionBarActivity implements
     }
 
     public void sharedLocation(View view){
-
+        Intent intent= new Intent(this, SharedLocations.class);
+        startActivity(intent);
     }
 
     public void myHistory(View view){

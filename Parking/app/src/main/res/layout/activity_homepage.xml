@@ -75,21 +75,21 @@
             />
 
         <Button
-            android:id="@+id/shared_location"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/shared_location"
-            android:onClick="sharedLocation"
-            />
-
-        <Button
             android:id="@+id/my_history"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/my_history"
             android:onClick="myHistory"
+            />
+
+        <Button
+            android:id="@+id/shared_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/shared_location"
+            android:onClick="sharedLocation"
             />
 
         <Button

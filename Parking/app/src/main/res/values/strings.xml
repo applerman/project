@@ -25,6 +25,7 @@
     <string name="view_map">View Map</string>
     <string name="route_planning">Route Planning</string>
     <string name="view_picture">View Picture</string>
+    <string name="share_location">Share This Location</string>
     <string name="leave">Leave</string>
 
     <string name="imagePage">View Sample Images</string>
@@ -51,6 +52,7 @@
 
     <string name="title_activity_remember_this">Remember This</string>
     <string name="title_activity_return_to_my_car">Return to My Car</string>
+    <string name="title_activity_shared_locations">Shared Locations</string>
     <string name="title_activity_my_history">My History</string>
     <string name="title_activity_recently_empty_spots">Recently Empty Spots</string>
 

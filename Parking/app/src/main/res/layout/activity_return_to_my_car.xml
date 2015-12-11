@@ -41,7 +41,7 @@
         android:text="@string/route_planning"
         android:onClick="routePlanning"
         />
-
+    
     <Button
         android:id="@+id/leave"
         android:layout_width="match_parent"

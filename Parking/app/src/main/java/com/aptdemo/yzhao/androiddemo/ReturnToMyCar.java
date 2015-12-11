@@ -105,6 +105,10 @@ public class ReturnToMyCar extends ActionBarActivity {
 
     }
 
+    public void shareLocation(View view){
+
+    }
+
     public void viewPicture(View view){
         if(parkingImgURL != null && !parkingImgURL.isEmpty()) {
             Dialog imageDialog = new Dialog(context);

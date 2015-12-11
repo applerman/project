@@ -1,7 +1,9 @@
 package com.aptdemo.yzhao.androiddemo;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -13,6 +15,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -130,29 +133,71 @@ public class RememberThis extends ActionBarActivity {
             took_photo = false;
         }
     }
+    public void shareLocation(View view){
+        // get prompts.xml view
+        LayoutInflater li = LayoutInflater.from(context);
+        View promptsView = li.inflate(R.layout.prompts, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                context);
+
+        // set prompts.xml to alertdialog builder
+        alertDialogBuilder.setView(promptsView);
+
+        final EditText userInput = (EditText) promptsView
+                .findViewById(R.id.editTextDialogUserInput);
+
+        // set dialog message
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                // get user input and set it to result
+                                // edit text
+                                String photoCaption = "";
+                                getUploadURL(b, photoCaption, userInput.getText().toString(), true);
+                            }
+                        })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+    }
 
     public void confirm(View view){
         String photoCaption = "";
         System.out.println("confirming");
-        getUploadURL(b, photoCaption);
+        getUploadURL(b, photoCaption, Homepage.email, false);
         b = null;
     }
 
-    private void getUploadURL(final byte[] encodedImage, final String photoCaption){
-        if(Homepage.email != null) {
-            postToServer(encodedImage, photoCaption);
+    private void getUploadURL(final byte[] encodedImage, final String photoCaption, final String user_email, final boolean isShare){
+        if(user_email != null) {
+            postToServer(encodedImage, photoCaption, user_email, isShare);
         }
     }
 
-    private void postToServer(byte[] encodedImage,String photoCaption){
+    private void postToServer(byte[] encodedImage,String photoCaption, String user_email, boolean isShare){
 
         String upload_url = "http://ParkingRightHere.appspot.com/park";
         System.out.println(upload_url);
         RequestParams params = new RequestParams();
 
-        params.put("user_email", Homepage.email);
+        params.put("user_email", user_email);
         if(encodedImage != null) {
             params.put("image", new ByteArrayInputStream(encodedImage));
+        }
+        if(isShare){
+            params.put("shared_parking", "true");
         }
         params.put("lat", mLatitude);
         params.put("lon", mLongitude);

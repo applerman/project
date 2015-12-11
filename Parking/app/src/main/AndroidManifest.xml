@@ -45,6 +45,10 @@
             android:label="@string/title_activity_my_history" >
         </activity>
         <activity
+            android:name=".SharedLocations"
+            android:label="@string/title_activity_shared_locations" >
+        </activity>
+        <activity
             android:name=".RecentlyEmptySpots"
             android:label="@string/title_activity_recently_empty_spots" >
         </activity>
