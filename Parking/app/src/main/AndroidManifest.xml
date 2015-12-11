@@ -65,6 +65,10 @@
             android:name=".UseMap"
             android:label="Use Map">
         </activity>
+        <activity
+            android:name=".StreetView"
+            android:label="Street View">
+        </activity>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
     </application>
 

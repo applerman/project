@@ -2,6 +2,7 @@ package com.aptdemo.yzhao.androiddemo;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.squareup.picasso.Picasso;
@@ -41,6 +43,12 @@ public class ReturnToMyCar extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_return_to_my_car);
+
+        Intent intent = getIntent();
+        double lat = intent.getDoubleExtra("Lat", 0.0);
+        double lon = intent.getDoubleExtra("Lon", 0.0);
+        mLatitude = lat;
+        mLongitude = lon;
 
         final String request_url = "http://parkingrighthere.appspot.com/park?viewparking=true&recent_one=true&user_email=" + Homepage.email;
         AsyncHttpClient httpClient = new AsyncHttpClient();
@@ -102,7 +110,10 @@ public class ReturnToMyCar extends ActionBarActivity {
     }
 
     public void streetView(View view){
-
+        Intent intent= new Intent(this, StreetView.class);
+        intent.putExtra("Lat",mLatitude);
+        intent.putExtra("Lon",mLongitude);
+        startActivity(intent);
     }
 
     public void shareLocation(View view){

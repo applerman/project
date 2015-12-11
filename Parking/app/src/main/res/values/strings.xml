@@ -103,6 +103,9 @@
     <string name="my_location">My Location</string>
     <string name="buildings">Buildings</string>
     <string name="indoor">Indoor</string>
-
+    <string name="panning">Panning Gestures</string>
+    <string name="zoom_gestures">Zoom Gestures</string>
+    <string name="streetnames">Street Names</string>
+    <string name="navigation">Navigation</string>
 
 </resources>

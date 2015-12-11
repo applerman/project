@@ -85,7 +85,10 @@ public class RememberThis extends ActionBarActivity {
     }
 
     public void streetView(View view){
-
+        Intent intent= new Intent(this, StreetView.class);
+        intent.putExtra("Lat",mLatitude);
+        intent.putExtra("Lon",mLongitude);
+        startActivity(intent);
     }
 
     public void usePicture(View view){
@@ -178,6 +181,9 @@ public class RememberThis extends ActionBarActivity {
         System.out.println("confirming");
         getUploadURL(b, photoCaption, Homepage.email, false);
         b = null;
+
+        Homepage.mLatitude = mLatitude;
+        Homepage.mLongitude = mLongitude;
     }
 
     private void getUploadURL(final byte[] encodedImage, final String photoCaption, final String user_email, final boolean isShare){

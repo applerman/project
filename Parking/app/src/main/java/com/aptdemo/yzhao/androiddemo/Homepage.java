@@ -82,6 +82,9 @@ public class Homepage extends ActionBarActivity implements
     private Button mRevokeButton;
     private TextView mStatus;
 
+    static double mLatitude = 0.0;
+    static double mLongitude = 0.0;
+
     Context context = this;
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -380,6 +383,8 @@ public class Homepage extends ActionBarActivity implements
 
     public void returnToMyCar(View view){
         Intent intent= new Intent(this, ReturnToMyCar.class);
+        intent.putExtra("Lat",mLatitude);
+        intent.putExtra("Lon",mLongitude);
         startActivity(intent);
     }
 
