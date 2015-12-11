@@ -59,7 +59,8 @@ public class RememberThis extends ActionBarActivity {
     }
 
     public void useMap(View view){
-
+        Intent intent= new Intent(this, UseMap.class);
+        startActivityForResult(intent, 0);
     }
 
     public void streetView(View view){
