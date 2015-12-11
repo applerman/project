@@ -16,11 +16,24 @@
 
 package com.aptdemo.yzhao.androiddemo;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -34,6 +47,9 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.location.Location;
+
+import java.util.Random;
 
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_HYBRID;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NONE;
@@ -46,7 +62,10 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
  */
 public class UseMap extends AppCompatActivity
         implements OnItemSelectedListener, OnMapReadyCallback,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        GoogleApiClient.ConnectionCallbacks, OnConnectionFailedListener,
+        OnMarkerClickListener, OnMarkerDragListener,
+        OnMapClickListener {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -62,6 +81,16 @@ public class UseMap extends AppCompatActivity
 
     private Spinner mSpinner;
 
+    private Location mLastLocation;
+
+    private GoogleApiClient mGoogleApiClient;
+
+    private double mLatitude;
+
+    private double mLongitude;
+
+    private LatLng mMarkerPosition;
+
     /**
      * Flag indicating whether a requested permission has been denied after returning in
      * {@link #onRequestPermissionsResult(int, String[], int[])}.
@@ -72,6 +101,16 @@ public class UseMap extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_use_map);
+
+        Intent intent = getIntent();
+        double lat = intent.getDoubleExtra("Lat", 0.0);
+        double lon = intent.getDoubleExtra("Lon", 0.0);
+        mLatitude = lat;
+        mLongitude = lon;
+        System.out.println("Read location");
+        System.out.println(mLatitude);
+        System.out.println(mLongitude);
+
 
         mSpinner = (Spinner) findViewById(R.id.layers_spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
@@ -88,6 +127,16 @@ public class UseMap extends AppCompatActivity
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        buildGoogleApiClient();
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
     }
 
     @Override
@@ -235,7 +284,117 @@ public class UseMap extends AppCompatActivity
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
     public void onNothingSelected(AdapterView<?> parent) {
         // Do nothing.
     }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        System.out.println("onConnected");
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null && (mLatitude==0.0 || mLongitude==0.0)) {
+            mLatitude = mLastLocation.getLatitude();
+            mLongitude = mLastLocation.getLongitude();
+            System.out.println("New location");
+        }
+        else{
+            System.out.println("Old location");
+        }
+
+        System.out.println(mLatitude);
+        System.out.println(mLongitude);
+
+        LatLng currLocation = new LatLng(mLatitude, mLongitude);
+
+        mMap.setMyLocationEnabled(true);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+
+        mMap.addMarker(new MarkerOptions()
+                .title("You are here")
+                .snippet("Drag it or Touch map to refine your location")
+                .position(currLocation))
+                .setDraggable(true);
+
+        mMap.setOnMarkerDragListener(this);
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnMapClickListener(this);
+
+        RememberThis.mLatitude = mLatitude;
+        RememberThis.mLongitude = mLongitude;
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+//        marker.setTitle("You are here");
+//        marker.setSnippet("Drag it or Touch map to refine your location");
+        LatLng currLocation = new LatLng(mLatitude, mLongitude);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+        marker.showInfoWindow();
+        return true;
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+
+        mMarkerPosition = marker.getPosition();
+        mLatitude = mMarkerPosition.latitude;
+        mLongitude = mMarkerPosition.longitude;
+        RememberThis.mLatitude = mLatitude;
+        RememberThis.mLongitude = mLongitude;
+    }
+
+    @Override
+    public void onMapClick (LatLng point){
+
+        System.out.println("onMapClick");
+
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions()
+                .title("You are here")
+                .snippet("Drag it or Touch map to refine your location")
+                .position(point))
+                .setDraggable(true);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 19));
+
+        mLatitude = point.latitude;
+        mLongitude = point.longitude;
+        RememberThis.mLatitude = mLatitude;
+        RememberThis.mLongitude = mLongitude;
+    }
+
 }

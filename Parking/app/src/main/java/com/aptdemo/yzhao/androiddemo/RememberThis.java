@@ -76,6 +76,8 @@ public class RememberThis extends ActionBarActivity {
 
     public void useMap(View view){
         Intent intent= new Intent(this, UseMap.class);
+        intent.putExtra("Lat",mLatitude);
+        intent.putExtra("Lon",mLongitude);
         startActivity(intent);
     }
 
