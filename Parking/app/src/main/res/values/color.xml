@@ -11,7 +11,7 @@
     <color name="colorActivated">#caeeff</color>
     <color name="primary">#3498DB</color>
     <color name="primaryDark">#303F9F</color>
-    <color name="textPrimary">#D0FFFFFF</color>
+    <color name="textPrimary">#738182</color>
     <color name="accent">#caeeff</color>
     <color name="colorHighlight">#ffaaff</color>
 </resources>
