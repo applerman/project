@@ -35,8 +35,8 @@ class Park(webapp2.RequestHandler):
       number = 16
       if recent_one:
          number = 1
-      parkings = Parking.query(Parking.user_email == user_email and
-                               Parking.shared_parking == shared_parking).order(-Parking.created_time).fetch(number)
+      parkings = Parking.query(ndb.AND(Parking.user_email == user_email, Parking.shared_parking ==
+                               shared_parking)).order(-Parking.created_time).fetch(number)
 
       parkingLat = []
       parkingLon = []
@@ -47,7 +47,10 @@ class Park(webapp2.RequestHandler):
         parkingLat.append(parking.geo.lat)
         parkingLon.append(parking.geo.lon)
         parkingDone.append(parking.done_parking)
-        parkingImgURL.append("http://parkingrighthere.appspot.com/img?img_id=%s" % parking.key.urlsafe())
+        if parking.image:
+          parkingImgURL.append("http://parkingrighthere.appspot.com/img?img_id=%s" % parking.key.urlsafe())
+        else:
+          parkingImgURL.append("")
 
       dictPassed = {'parkingLat':parkingLat, 'parkingLon':parkingLon,
                     'parkingDone':parkingDone, 'parkingImgURL':parkingImgURL}

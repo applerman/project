@@ -12,6 +12,12 @@ indexes:
 
 - kind: Parking
   properties:
+  - name: shared_parking
+  - name: created_time
+    direction: desc
+
+- kind: Parking
+  properties:
   - name: user_email
   - name: created_time
     direction: desc
