@@ -117,8 +117,13 @@ public class RememberThis extends ActionBarActivity {
             final Bitmap rotatedBitmapImage = Bitmap.createBitmap(bitmapImage, 0, 0, bitmapImage.getWidth
                     (), bitmapImage.getHeight(), matrix, true);
 
+            Bitmap resizedBitmapImage = Bitmap.createScaledBitmap(rotatedBitmapImage,
+                    (int) (rotatedBitmapImage.getWidth() * 0.35), (int) (rotatedBitmapImage.getHeight() * 0.35), true);
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            rotatedBitmapImage.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+            resizedBitmapImage.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+
+
             b = baos.toByteArray();
             byte[] encodedImage = Base64.encode(b, Base64.DEFAULT);
             String encodedImageStr = encodedImage.toString();
