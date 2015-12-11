@@ -43,6 +43,7 @@ import java.util.ArrayList;
 public class RememberThis extends ActionBarActivity {
     static double mLatitude = 0.0;
     static double mLongitude = 0.0;
+    static boolean took_photo = false;
 
     Context context = this;
     private String TAG  = "Remember This";
@@ -86,20 +87,32 @@ public class RememberThis extends ActionBarActivity {
         Intent intent= new Intent(this, CameraCapture.class);
         startActivityForResult(intent, CAMERA_IMAGE);
     }
-
+    static byte[] b = null;
     public void viewPicture(View view){
+        if(b != null) {
+            Dialog imageDialog = new Dialog(context);
+            imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            imageDialog.setContentView(R.layout.thumbnail);
+            ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
 
+            Picasso.with(context).load(b.toString()).into(image);
+
+            Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
+            image.setImageBitmap(bitmap);
+
+            imageDialog.show();
+        }
     }
 
-    byte[] b = null;
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(took_photo) {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(90);
 
-        Matrix matrix = new Matrix();
-        matrix.postRotate(90);
+            String imageFilePath = data.getStringExtra("latestImageFileName");
 
-        String imageFilePath = data.getStringExtra("latestImageFileName");
-        if(imageFilePath != null) {
             Bitmap bitmapImage = BitmapFactory.decodeFile(imageFilePath);
             final Bitmap rotatedBitmapImage = Bitmap.createBitmap(bitmapImage, 0, 0, bitmapImage.getWidth
                     (), bitmapImage.getHeight(), matrix, true);
@@ -109,6 +122,7 @@ public class RememberThis extends ActionBarActivity {
             b = baos.toByteArray();
             byte[] encodedImage = Base64.encode(b, Base64.DEFAULT);
             String encodedImageStr = encodedImage.toString();
+            took_photo = false;
         }
     }
 

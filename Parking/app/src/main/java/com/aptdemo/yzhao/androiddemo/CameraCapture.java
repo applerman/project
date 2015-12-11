@@ -136,7 +136,8 @@ public class CameraCapture extends ActionBarActivity {
         Toast.makeText(context, "Use the latest image captured!", Toast.LENGTH_SHORT).show();
         Intent returnIntent = new Intent();
         returnIntent.putExtra("latestImageFileName",latestImageFileName);
-        setResult(RESULT_OK,returnIntent);
+        setResult(RESULT_OK, returnIntent);
+        RememberThis.took_photo = true;
         finish();
     }
 
