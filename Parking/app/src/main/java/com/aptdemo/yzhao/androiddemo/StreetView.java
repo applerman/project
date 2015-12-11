@@ -15,6 +15,7 @@
  */
 package com.aptdemo.yzhao.androiddemo;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 
 /**
  * This shows how to create an activity with static streetview (all options have been switched off)
@@ -47,6 +49,8 @@ public class StreetView extends AppCompatActivity {
 
     private CheckBox mPanningCheckbox;
 
+    Context context = this;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,8 +63,6 @@ public class StreetView extends AppCompatActivity {
 
         mStreetNameCheckbox = (CheckBox) findViewById(R.id.streetnames);
         mNavigationCheckbox = (CheckBox) findViewById(R.id.navigation);
-        mZoomCheckbox = (CheckBox) findViewById(R.id.zoom);
-        mPanningCheckbox = (CheckBox) findViewById(R.id.panning);
 
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
                 (SupportStreetViewPanoramaFragment)
@@ -73,8 +75,8 @@ public class StreetView extends AppCompatActivity {
                         mStreetViewPanorama.setStreetNamesEnabled(mStreetNameCheckbox.isChecked());
                         mStreetViewPanorama
                                 .setUserNavigationEnabled(mNavigationCheckbox.isChecked());
-                        mStreetViewPanorama.setZoomGesturesEnabled(mZoomCheckbox.isChecked());
-                        mStreetViewPanorama.setPanningGesturesEnabled(mPanningCheckbox.isChecked());
+                        mStreetViewPanorama.setZoomGesturesEnabled(true);
+                        mStreetViewPanorama.setPanningGesturesEnabled(true);
 
                         // Only set the panorama to SAN_FRAN on startup (when no panoramas have been
                         // loaded which is when the savedInstanceState is null).
@@ -105,19 +107,5 @@ public class StreetView extends AppCompatActivity {
             return;
         }
         mStreetViewPanorama.setUserNavigationEnabled(mNavigationCheckbox.isChecked());
-    }
-
-    public void onZoomToggled(View view) {
-        if (!checkReady()) {
-            return;
-        }
-        mStreetViewPanorama.setZoomGesturesEnabled(mZoomCheckbox.isChecked());
-    }
-
-    public void onPanningToggled(View view) {
-        if (!checkReady()) {
-            return;
-        }
-        mStreetViewPanorama.setPanningGesturesEnabled(mPanningCheckbox.isChecked());
     }
 }

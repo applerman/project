@@ -107,5 +107,7 @@
     <string name="zoom_gestures">Zoom Gestures</string>
     <string name="streetnames">Street Names</string>
     <string name="navigation">Navigation</string>
+    <string name="go_to_car">To Car</string>
+    <string name="go_to_current">To Current</string>
 
 </resources>

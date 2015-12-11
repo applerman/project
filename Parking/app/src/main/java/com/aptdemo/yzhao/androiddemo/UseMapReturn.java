@@ -16,26 +16,10 @@
 
 package com.aptdemo.yzhao.androiddemo;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
-import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
-
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -48,9 +32,21 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.Toast;
-import android.location.Location;
 
-import java.util.Random;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_HYBRID;
 import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_NONE;
@@ -61,12 +57,11 @@ import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
 /**
  * Demonstrates the different base layers of a map.
  */
-public class UseMap extends AppCompatActivity
+public class UseMapReturn extends AppCompatActivity
         implements OnItemSelectedListener, OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleApiClient.ConnectionCallbacks, OnConnectionFailedListener,
-        OnMarkerClickListener, OnMarkerDragListener,
-        OnMapClickListener {
+        OnMarkerClickListener{
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -88,7 +83,6 @@ public class UseMap extends AppCompatActivity
 
     private LatLng mMarkerPosition;
 
-    Context context = this;
     /**
      * Flag indicating whether a requested permission has been denied after returning in
      * {@link #onRequestPermissionsResult(int, String[], int[])}.
@@ -98,7 +92,7 @@ public class UseMap extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_use_map);
+        setContentView(R.layout.activity_use_map_return);
 
         Intent intent = getIntent();
         double lat = intent.getDoubleExtra("Lat", 0.0);
@@ -108,8 +102,6 @@ public class UseMap extends AppCompatActivity
         System.out.println("Read location");
         System.out.println(mLatitude);
         System.out.println(mLongitude);
-
-        Toast.makeText(context, "Drag the Marker or Touch the map to refine your location", Toast.LENGTH_LONG).show();
 
 
         mSpinner = (Spinner) findViewById(R.id.layers_spinner);
@@ -302,16 +294,16 @@ public class UseMap extends AppCompatActivity
 
     @Override
     public void onConnected(Bundle bundle) {
-        System.out.println("onConnected");
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null && (mLatitude==0.0 || mLongitude==0.0)) {
-            mLatitude = mLastLocation.getLatitude();
-            mLongitude = mLastLocation.getLongitude();
-            System.out.println("New location");
-        }
-        else{
-            System.out.println("Old location");
-        }
+//        System.out.println("onConnected");
+//        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+//        if (mLastLocation != null && (mLatitude==0.0 || mLongitude==0.0)) {
+//            mLatitude = mLastLocation.getLatitude();
+//            mLongitude = mLastLocation.getLongitude();
+//            System.out.println("New location");
+//        }
+//        else{
+//            System.out.println("Old location");
+//        }
 
         System.out.println(mLatitude);
         System.out.println(mLongitude);
@@ -323,17 +315,11 @@ public class UseMap extends AppCompatActivity
 //        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
 
         mMap.addMarker(new MarkerOptions()
-                .title("You are here")
-                .snippet("Drag it or Touch map to refine your location")
-                .position(currLocation))
-                .setDraggable(true);
+                .title("Your car is here")
+                .snippet("Previously saved location")
+                .position(currLocation));
 
-        mMap.setOnMarkerDragListener(this);
         mMap.setOnMarkerClickListener(this);
-        mMap.setOnMapClickListener(this);
-
-        RememberThis.mLatitude = mLatitude;
-        RememberThis.mLongitude = mLongitude;
     }
 
     @Override
@@ -358,41 +344,17 @@ public class UseMap extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void onMarkerDragStart(Marker marker) {
+    public void onGoToCar(View view) {
+        LatLng currLocation = new LatLng(mLatitude, mLongitude);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
     }
 
-    @Override
-    public void onMarkerDrag(Marker marker) {
-    }
-
-    @Override
-    public void onMarkerDragEnd(Marker marker) {
-
-        mMarkerPosition = marker.getPosition();
-        mLatitude = mMarkerPosition.latitude;
-        mLongitude = mMarkerPosition.longitude;
-        RememberThis.mLatitude = mLatitude;
-        RememberThis.mLongitude = mLongitude;
-    }
-
-    @Override
-    public void onMapClick (LatLng point){
-
-        System.out.println("onMapClick");
-
-        mMap.clear();
-        mMap.addMarker(new MarkerOptions()
-                .title("You are here")
-                .snippet("Drag it or Touch map to refine your location")
-                .position(point))
-                .setDraggable(true);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 19));
-
-        mLatitude = point.latitude;
-        mLongitude = point.longitude;
-        RememberThis.mLatitude = mLatitude;
-        RememberThis.mLongitude = mLongitude;
+    public void onGoToCurrent(View view) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            LatLng currLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+        }
     }
 
 }

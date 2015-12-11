@@ -49,22 +49,6 @@
             android:onClick="onNavigationToggled"
             android:checked="true"
             android:text="@string/navigation" />
-
-        <CheckBox
-            android:id="@+id/zoom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onZoomToggled"
-            android:checked="true"
-            android:text="@string/zoom_gestures" />
-
-        <CheckBox
-            android:id="@+id/panning"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onPanningToggled"
-            android:checked="true"
-            android:text="@string/panning" />
     </LinearLayout>
 
 </RelativeLayout>

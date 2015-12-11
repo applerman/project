@@ -55,6 +55,8 @@ public class RememberThis extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_remember_this);
+
+        Toast.makeText(context, "Set location on Map and take a picture. Push Confirm to save!", Toast.LENGTH_LONG).show();
     }
 
 
