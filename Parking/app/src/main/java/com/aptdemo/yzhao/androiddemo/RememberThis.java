@@ -97,8 +97,6 @@ public class RememberThis extends ActionBarActivity {
             imageDialog.setContentView(R.layout.thumbnail);
             ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
 
-            Picasso.with(context).load(b.toString()).into(image);
-
             Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
             image.setImageBitmap(bitmap);
 
@@ -132,10 +130,11 @@ public class RememberThis extends ActionBarActivity {
         String photoCaption = "";
         System.out.println("confirming");
         getUploadURL(b, photoCaption);
+        b = null;
     }
 
     private void getUploadURL(final byte[] encodedImage, final String photoCaption){
-        if(Homepage.email != null && encodedImage != null) {
+        if(Homepage.email != null) {
             postToServer(encodedImage, photoCaption);
         }
     }
@@ -147,7 +146,9 @@ public class RememberThis extends ActionBarActivity {
         RequestParams params = new RequestParams();
 
         params.put("user_email", Homepage.email);
-        params.put("image",new ByteArrayInputStream(encodedImage));
+        if(encodedImage != null) {
+            params.put("image", new ByteArrayInputStream(encodedImage));
+        }
         params.put("lat", mLatitude);
         params.put("lon", mLongitude);
         params.put("description", photoCaption);
@@ -161,8 +162,7 @@ public class RememberThis extends ActionBarActivity {
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e)
-            {
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                 Log.e("Posting_to_blob", "There was a problem in retrieving the url : " + e.toString
                         ());
             }

@@ -35,6 +35,57 @@ public class ReturnToMyCar extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_return_to_my_car);
+
+        final String request_url = "http://ParkingRightHere.appspot.com/viewpakring?recent_one=true&user_email=" + Homepage.email;
+        AsyncHttpClient httpClient = new AsyncHttpClient();
+        httpClient.get(request_url, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                final ArrayList<String> imageURLs = new ArrayList<String>();
+                final ArrayList<String> imageCaps = new ArrayList<String>();
+                try {
+                    JSONObject jObject = new JSONObject(new String(response));
+                    JSONArray displayImages = jObject.getJSONArray("displayImages");
+                    JSONArray displayCaption = jObject.getJSONArray("imageCaptionList");
+
+                    for (int i = 0; i < displayImages.length(); i++) {
+
+                        imageURLs.add(displayImages.getString(i));
+                        imageCaps.add(displayCaption.getString(i));
+                        System.out.println(displayImages.getString(i));
+                    }
+                    GridView gridview = (GridView) findViewById(R.id.gridview);
+                    gridview.setAdapter(new ImageAdapter(context,imageURLs));
+                    gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View v,
+                                                int position, long id) {
+
+                            Toast.makeText(context, imageCaps.get(position), Toast.LENGTH_SHORT).show();
+
+                            Dialog imageDialog = new Dialog(context);
+                            imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                            imageDialog.setContentView(R.layout.thumbnail);
+                            ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
+
+                            Picasso.with(context).load(imageURLs.get(position)).into(image);
+
+                            imageDialog.show();
+                        }
+                    });
+                }
+                catch(JSONException j){
+                    System.out.println("JSON Error");
+                }
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                Log.e(TAG, "There was a problem in retrieving the url : " + e.toString());
+            }
+        });
+
     }
 
 
