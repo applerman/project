@@ -34,12 +34,12 @@
         />
 
     <Button
-        android:id="@+id/use_current"
+        android:id="@+id/view_picture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/use_current"
-        android:onClick="useCurrent"
+        android:text="@string/view_picture"
+        android:onClick="viewPicture"
         />
 
     <Button
