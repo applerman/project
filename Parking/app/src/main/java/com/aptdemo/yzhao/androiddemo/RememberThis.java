@@ -158,7 +158,7 @@ public class RememberThis extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] response) {
                 Log.w("async", "success!!!!");
-                Toast.makeText(context, "Upload Successful", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Parking Location Remebered!", Toast.LENGTH_SHORT).show();
             }
 
             @Override
