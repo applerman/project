@@ -2,6 +2,8 @@ package com.aptdemo.yzhao.androiddemo;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -31,50 +33,33 @@ public class ReturnToMyCar extends ActionBarActivity {
     Context context = this;
     private String TAG  = "Return to My Car";
 
+    static double mLatitude = 0.0;
+    static double mLongitude = 0.0;
+    static String parkingImgURL = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_return_to_my_car);
 
-        final String request_url = "http://ParkingRightHere.appspot.com/viewpakring?recent_one=true&user_email=" + Homepage.email;
+        final String request_url = "http://parkingrighthere.appspot.com/park?viewparking=true&recent_one=true&user_email=" + Homepage.email;
         AsyncHttpClient httpClient = new AsyncHttpClient();
         httpClient.get(request_url, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                final ArrayList<String> imageURLs = new ArrayList<String>();
-                final ArrayList<String> imageCaps = new ArrayList<String>();
+
                 try {
                     JSONObject jObject = new JSONObject(new String(response));
-                    JSONArray displayImages = jObject.getJSONArray("displayImages");
-                    JSONArray displayCaption = jObject.getJSONArray("imageCaptionList");
+                    JSONArray parkingLats = jObject.getJSONArray("parkingLat");
+                    JSONArray parkingLons = jObject.getJSONArray("parkingLon");
+                    JSONArray parkingImgURLs = jObject.getJSONArray("parkingImgURL");
 
-                    for (int i = 0; i < displayImages.length(); i++) {
-
-                        imageURLs.add(displayImages.getString(i));
-                        imageCaps.add(displayCaption.getString(i));
-                        System.out.println(displayImages.getString(i));
+                    if (parkingLats.length() >= 1) {
+                        mLatitude = Double.parseDouble(parkingLats.getString(0));
+                        mLongitude = Double.parseDouble(parkingLons.getString(0));
+                        parkingImgURL = parkingImgURLs.getString(0);
                     }
-                    GridView gridview = (GridView) findViewById(R.id.gridview);
-                    gridview.setAdapter(new ImageAdapter(context,imageURLs));
-                    gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View v,
-                                                int position, long id) {
-
-                            Toast.makeText(context, imageCaps.get(position), Toast.LENGTH_SHORT).show();
-
-                            Dialog imageDialog = new Dialog(context);
-                            imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                            imageDialog.setContentView(R.layout.thumbnail);
-                            ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
-
-                            Picasso.with(context).load(imageURLs.get(position)).into(image);
-
-                            imageDialog.show();
-                        }
-                    });
-                }
-                catch(JSONException j){
+                } catch (JSONException j) {
                     System.out.println("JSON Error");
                 }
 
@@ -121,7 +106,19 @@ public class ReturnToMyCar extends ActionBarActivity {
     }
 
     public void viewPicture(View view){
+        if(parkingImgURL != null && !parkingImgURL.isEmpty()) {
+            Dialog imageDialog = new Dialog(context);
+            imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            imageDialog.setContentView(R.layout.thumbnail);
+            ImageView image = (ImageView) imageDialog.findViewById(R.id.thumbnail_IMAGEVIEW);
 
+            Picasso.with(context).load(parkingImgURL).into(image);
+
+            imageDialog.show();
+        }
+        else if(parkingImgURL.isEmpty()){
+            Toast.makeText(context, "No Picture.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void leave(View view){
