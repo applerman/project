@@ -57,13 +57,12 @@
             />
 
         <Button
-            style="@android:style/Theme.Material"
+            style="@style/Button"
             android:id="@+id/remember_this"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/remember_this"
-            android:elevation="10dp"
             android:onClick="rememberThis" />
 
         <Button
