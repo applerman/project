@@ -13,5 +13,5 @@
     <color name="primaryDark">#303F9F</color>
     <color name="textPrimary">#000</color>
     <color name="accent">#caeeff</color>
-    <color name="colorHighlight">#ffaaff</color>
+    <color name="colorHighlight">#caeeff</color>
 </resources>
