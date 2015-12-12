@@ -114,7 +114,10 @@ public class ReturnToMyCar extends ActionBarActivity {
     }
 
     public void routePlanning(View view){
-
+        Intent intent= new Intent(this, RoutePlanning.class);
+        intent.putExtra("Lat",mLatitude);
+        intent.putExtra("Lon",mLongitude);
+        startActivity(intent);
     }
 
     public void streetView(View view){
