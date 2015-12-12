@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.squareup.picasso.Picasso;
 
 import org.apache.http.Header;
@@ -27,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 
 //import android.support.v7.app.AppCompatActivity;
@@ -38,6 +40,7 @@ public class ReturnToMyCar extends ActionBarActivity {
     static double mLatitude = 0.0;
     static double mLongitude = 0.0;
     static String parkingImgURL = "";
+    static String parkingKey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,11 +64,13 @@ public class ReturnToMyCar extends ActionBarActivity {
                     JSONArray parkingLats = jObject.getJSONArray("parkingLat");
                     JSONArray parkingLons = jObject.getJSONArray("parkingLon");
                     JSONArray parkingImgURLs = jObject.getJSONArray("parkingImgURL");
+                    JSONArray parkingKeys = jObject.getJSONArray("parkingKey");
 
                     if (parkingLats.length() >= 1) {
                         mLatitude = Double.parseDouble(parkingLats.getString(0));
                         mLongitude = Double.parseDouble(parkingLons.getString(0));
                         parkingImgURL = parkingImgURLs.getString(0);
+                        parkingKey = parkingKeys.getString(0);
                     }
                 } catch (JSONException j) {
                     System.out.println("JSON Error");
@@ -135,12 +140,29 @@ public class ReturnToMyCar extends ActionBarActivity {
             imageDialog.show();
         }
         else if(parkingImgURL.isEmpty()){
-            Toast.makeText(context, "No Picture.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "No Picture", Toast.LENGTH_SHORT).show();
         }
     }
 
     public void leave(View view){
-
+        if(!parkingKey.isEmpty()) {
+            postToServer(parkingKey);
+        }
     }
 
+    private void postToServer(String key) {
+        final String request_url = "http://parkingrighthere.appspot.com/park?leaveparking=true&key=" + key;
+        AsyncHttpClient httpClient = new AsyncHttpClient();
+        httpClient.get(request_url, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                Toast.makeText(context, "Left the parking place!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                Log.e(TAG, "There was a problem in retrieving the url : " + e.toString());
+            }
+        });
+    }
 }

@@ -73,8 +73,6 @@ public class MyHistory extends AppCompatActivity {
                     JSONArray parkingLons = jObject.getJSONArray("parkingLon");
                     JSONArray parkingDatetimes = jObject.getJSONArray("parkingDatetime");
 
-                    System.out.print("Hi: ");
-                    System.out.println(parkingLats.length());
                     for (int i = 0; i < parkingLats.length(); i++) {
                         locations_array.add(new NamedLocation(parkingDatetimes.getString(i), new LatLng(
                                 Double.parseDouble(parkingLats.getString(i)),
