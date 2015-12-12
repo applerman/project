@@ -106,7 +106,7 @@ public class RecentlyEmptySpots extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_use_map);
+        setContentView(R.layout.activity_empty_locations);
 
         final String request_url = "http://parkingrighthere.appspot.com/park?lastestemptyparking=true";
         AsyncHttpClient httpClient = new AsyncHttpClient();

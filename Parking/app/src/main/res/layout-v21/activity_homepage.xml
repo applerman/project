@@ -15,6 +15,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:orientation="horizontal"
             android:padding="2dip">
 
@@ -22,7 +23,7 @@
                 android:id="@+id/sign_in_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="30dip"
+                android:layout_marginBottom="2dip"
                 android:enabled="false" />
 
             <Button
@@ -44,7 +45,8 @@
             android:id="@+id/sign_in_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dip"
+            android:layout_marginBottom="10dip"
+            android:layout_gravity="center"
             android:text="@string/status_signed_out" />
 
         <TextView
@@ -53,51 +55,65 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="40sp"
-            android:paddingBottom = "10sp"
+            android:paddingBottom = "8sp"
             />
 
         <Button
-            style="@style/Button"
             android:id="@+id/remember_this"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="300sp"
+            android:layout_height="60sp"
             android:gravity="center"
+            android:layout_gravity="center"
             android:text="@string/remember_this"
+            android:paddingBottom = "5sp"
+            android:textSize="16sp"
             android:onClick="rememberThis" />
 
         <Button
             android:id="@+id/return_to_my_car"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="300sp"
+            android:layout_height="60sp"
             android:gravity="center"
+            android:layout_gravity="center"
             android:text="@string/return_to_my_car"
+            android:paddingBottom = "5sp"
+            android:textSize="16sp"
             android:onClick="returnToMyCar"
             />
 
         <Button
             android:id="@+id/my_history"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="300sp"
+            android:layout_height="60sp"
             android:gravity="center"
+            android:layout_gravity="center"
             android:text="@string/my_history"
+            android:paddingBottom = "5sp"
+            android:textSize="16sp"
             android:onClick="myHistory"
             />
 
         <Button
             android:id="@+id/shared_location"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="300sp"
+            android:layout_height="60sp"
             android:gravity="center"
+            android:layout_gravity="center"
             android:text="@string/shared_location"
+            android:paddingBottom = "5sp"
+            android:textSize="16sp"
             android:onClick="sharedLocation"
             />
 
         <Button
             android:id="@+id/recently_empty_spots"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="300sp"
+            android:layout_height="60sp"
             android:gravity="center"
+            android:layout_gravity="center"
             android:text="@string/recently_empty_spots"
+            android:paddingBottom = "5sp"
+            android:textSize="16sp"
             android:onClick="recentlyEmptySpots"
             />
 

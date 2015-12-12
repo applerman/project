@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="2dip">
+            android:padding="1dip">
 
             <com.google.android.gms.common.SignInButton
                 android:id="@+id/sign_in_button"
@@ -57,7 +57,6 @@
             />
 
         <Button
-            style="@android:style/Theme.Material"
             android:id="@+id/remember_this"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -238,7 +238,7 @@ public class Homepage extends ActionBarActivity implements
         mSignInProgress = STATE_DEFAULT;
 
 
-        mStatus.setText(email + " is currently Signed In");
+        mStatus.setText("Hello!  " + email);
         /*
         Button uploadButton = (Button) findViewById(R.id.open_image_upload_page);
         uploadButton.setClickable(true);
