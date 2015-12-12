@@ -121,6 +121,8 @@ public class RoutePlanning extends AppCompatActivity
 
     private String TAG  = "Routing Planning";
 
+    static String duration = "";
+
     /**
      * Flag indicating whether a requested permission has been denied after returning in
      * {@link #onRequestPermissionsResult(int, String[], int[])}.
@@ -361,17 +363,8 @@ public class RoutePlanning extends AppCompatActivity
 
         String urlForGMapDirection = getURLString();
         System.out.println(urlForGMapDirection);
-        //
 
         new RequestTask().execute(urlForGMapDirection);
-/*
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        Polyline line = mMap.addPolyline(new PolylineOptions()
-                .add(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new LatLng(mLatitude, mLongitude))
-                .width(5)
-                .color(0xFF888888));
-*/
-
     }
 
     public String getURLString(){
@@ -381,6 +374,7 @@ public class RoutePlanning extends AppCompatActivity
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         url += String.valueOf(mLastLocation.getLatitude()) + "," + String.valueOf(mLastLocation.getLongitude());
         url += "&destination=" + String.valueOf(mLatitude) + "," + String.valueOf(mLongitude);
+        url += "&mode=walking";
         url += "&key=AIzaSyAh2jIRbtrs6_nDl6SIF3h_3Sefder06j0";
 
         return url;
@@ -411,6 +405,7 @@ public class RoutePlanning extends AppCompatActivity
     public void onGoToCar(View view) {
         LatLng currLocation = new LatLng(mLatitude, mLongitude);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+        Toast.makeText(this, "Estimated Walking Time: " + duration, Toast.LENGTH_LONG).show();
     }
 
     public void onGoToCurrent(View view) {
@@ -418,6 +413,7 @@ public class RoutePlanning extends AppCompatActivity
         if (mLastLocation != null) {
             LatLng currLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+            Toast.makeText(this, "Estimated Walking Time: " + duration, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -469,6 +465,10 @@ class RequestTask extends AsyncTask<String, String, String> {
                         .width(10)
                         .color(0xFF888888));
             }
+
+            String duration = jObject.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getString("text");
+            System.out.println(duration);
+            RoutePlanning.duration = duration;
         }
         catch(JSONException j){
             System.out.println("JSON Error");
