@@ -51,7 +51,7 @@ class Park(webapp2.RequestHandler):
         parkingLat.append(parking.geo.lat)
         parkingLon.append(parking.geo.lon)
         parkingDone.append(parking.done_parking)
-        parkingDatetime.append(parking.created_time.strftime("%Y-%m-%d %H:%M:%S"))
+        parkingDatetime.append((parking.created_time - datetime.timedelta(hours=6)).strftime("%Y-%m-%d %H:%M:%S", ))
         parkingKey.append(parking.key.urlsafe())
         if parking.image:
           parkingImgURL.append("http://parkingrighthere.appspot.com/img?img_id=%s" % parking.key.urlsafe())
@@ -83,7 +83,7 @@ class Park(webapp2.RequestHandler):
       for parking in parkings:
         parkingLat.append(parking.geo.lat)
         parkingLon.append(parking.geo.lon)
-        parkingDoneTime.append(parking.done_time.strftime("%Y-%m-%d %H:%M:%S"))
+        parkingDoneTime.append((parking.done_time - datetime.timedelta(hours=6)).strftime("%Y-%m-%d %H:%M:%S"))
 
       dictPassed = {'parkingLat':parkingLat, 'parkingLon':parkingLon, 'parkingDoneTime':parkingDoneTime};
 
