@@ -59,61 +59,36 @@
             />
 
         <Button
+            style="@style/Button"
             android:id="@+id/remember_this"
-            android:layout_width="300sp"
-            android:layout_height="60sp"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:text="@string/remember_this"
-            android:paddingBottom = "5sp"
-            android:textSize="16sp"
             android:onClick="rememberThis" />
 
         <Button
+            style="@style/Button"
             android:id="@+id/return_to_my_car"
-            android:layout_width="300sp"
-            android:layout_height="60sp"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:text="@string/return_to_my_car"
-            android:paddingBottom = "5sp"
-            android:textSize="16sp"
             android:onClick="returnToMyCar"
             />
 
         <Button
+            style="@style/Button"
             android:id="@+id/my_history"
-            android:layout_width="300sp"
-            android:layout_height="60sp"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:text="@string/my_history"
-            android:paddingBottom = "5sp"
-            android:textSize="16sp"
             android:onClick="myHistory"
             />
 
         <Button
+            style="@style/Button"
             android:id="@+id/shared_location"
-            android:layout_width="300sp"
-            android:layout_height="60sp"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:text="@string/shared_location"
-            android:paddingBottom = "5sp"
-            android:textSize="16sp"
             android:onClick="sharedLocation"
             />
 
         <Button
+            style="@style/Button"
             android:id="@+id/recently_empty_spots"
-            android:layout_width="300sp"
-            android:layout_height="60sp"
-            android:gravity="center"
-            android:layout_gravity="center"
             android:text="@string/recently_empty_spots"
-            android:paddingBottom = "5sp"
-            android:textSize="16sp"
             android:onClick="recentlyEmptySpots"
             />
 

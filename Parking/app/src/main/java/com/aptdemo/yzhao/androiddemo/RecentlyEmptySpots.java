@@ -360,7 +360,7 @@ public class RecentlyEmptySpots extends AppCompatActivity
         LatLng currLocation = new LatLng(mLatitude, mLongitude);
 
         mMap.setMyLocationEnabled(true);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 14));
 //        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currLocation, 19));
 
 

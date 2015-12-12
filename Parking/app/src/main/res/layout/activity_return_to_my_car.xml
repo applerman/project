@@ -1,52 +1,43 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:layout_gravity="center"
     tools:context="com.aptdemo.yzhao.androiddemo.DisplayImages">
 
     <Button
+        style="@style/Button"
         android:id="@+id/view_map"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
         android:text="@string/view_map"
         android:onClick="viewMap"
         />
 
     <Button
+        style="@style/Button"
         android:id="@+id/street_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
         android:text="@string/street_view"
         android:onClick="streetView"
         />
 
     <Button
+        style="@style/Button"
         android:id="@+id/view_picture"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
         android:text="@string/view_picture"
         android:onClick="viewPicture"
         />
 
     <Button
+        style="@style/Button"
         android:id="@+id/route_planning"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
         android:text="@string/route_planning"
         android:onClick="routePlanning"
         />
     
     <Button
+        style="@style/Button"
         android:id="@+id/leave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
         android:text="@string/leave"
         android:onClick="leave"
         />
