@@ -1,4 +1,5 @@
 import cgi
+import datetime
 import json
 import urllib
 import webapp2
@@ -18,6 +19,7 @@ class Parking(ndb.Model):
   created_time = ndb.DateTimeProperty(auto_now_add=True)
   done_parking = ndb.BooleanProperty()
   shared_parking = ndb.BooleanProperty()
+  done_time = ndb.DateTimeProperty()
 
 class User(ndb.Model):
   user_email = ndb.StringProperty(indexed=True)
@@ -43,12 +45,14 @@ class Park(webapp2.RequestHandler):
       parkingDone = []
       parkingDatetime = []
       parkingImgURL = []
+      parkingKey = []
 
       for parking in parkings:
         parkingLat.append(parking.geo.lat)
         parkingLon.append(parking.geo.lon)
         parkingDone.append(parking.done_parking)
         parkingDatetime.append(parking.created_time.strftime("%Y-%m-%d %H:%M:%S"))
+        parkingKey.append(parking.key.urlsafe())
         if parking.image:
           parkingImgURL.append("http://parkingrighthere.appspot.com/img?img_id=%s" % parking.key.urlsafe())
         else:
@@ -56,7 +60,32 @@ class Park(webapp2.RequestHandler):
 
       dictPassed = {'parkingLat':parkingLat, 'parkingLon':parkingLon,
                     'parkingDone':parkingDone, 'parkingImgURL':parkingImgURL,
-                    'parkingDatetime':parkingDatetime};
+                    'parkingKey':parkingKey, 'parkingDatetime':parkingDatetime};
+
+      jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
+      self.response.write(jsonObj)
+
+    elif self.request.get('leaveparking'):
+      park_key = ndb.Key(urlsafe=self.request.get('key'))
+      park = park_key.get()
+      park.done_parking = True
+      park.done_time = datetime.datetime.now()
+      park.put()
+
+    elif self.request.get('lastestemptyparking'):
+      #parkings = Parking.query(Parking.done_parking == True).order(-Parking.done_time).fetch(32)
+      parkings = Parking.query(Parking.done_parking == True).fetch(108)
+
+      parkingLat = []
+      parkingLon = []
+      parkingDoneTime = []
+      
+      for parking in parkings:
+        parkingLat.append(parking.geo.lat)
+        parkingLon.append(parking.geo.lon)
+        parkingDoneTime.append(parking.done_time.strftime("%Y-%m-%d %H:%M:%S"))
+
+      dictPassed = {'parkingLat':parkingLat, 'parkingLon':parkingLon, 'parkingDoneTime':parkingDoneTime};
 
       jsonObj = json.dumps(dictPassed, sort_keys=True,indent=4, separators=(',', ': '))
       self.response.write(jsonObj)
